@@ -1,0 +1,533 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Media Gallery Theming
+ */
+
+/**
+ * Displays a collection of galleries as a grid of teasers.
+ */
+function theme_media_gallery_collection($variables) {
+  $element = $variables['element'];
+  $collection = $element['#term'];
+
+  $columns = $collection->media_gallery_columns[LANGUAGE_NONE][0]['value'];
+  $grid = '<div class="media-gallery-collection mg-collection-' . $collection->vocabulary_machine_name . ' mg-col mg-col-' . $columns . '">';
+  foreach (element_children($element['nodes']) as $nid) {
+    // This invokes node.tpl.php, and where that calls render($content),
+    // theme_media_gallery_teaser() is called.
+
+    // Add the term to the node so that we can use it to configure the meta data
+    $element['nodes'][$nid]['#node']->term = $collection;
+    $teaser = drupal_render($element['nodes'][$nid]);
+
+    // @todo Implement real display needs.
+    $cell = $teaser;
+    $grid .= $cell;
+  }
+  $grid .= '</div>';
+
+  // Replace the 'nodes' element with the rendered grid while preserving its
+  // weight, so that other fields that are part of the collection term get
+  // rendered normally, and in the correct order.
+  $weight = isset($element['nodes']['#weight']) ? $element['nodes']['#weight'] : 0;
+  $element['nodes'] = array('#markup' => $grid, '#weight' => $weight);
+  $output = drupal_render_children($element);
+
+  return $output;
+}
+
+/**
+ * Displays a gallery node as a teaser.
+ *
+ * The Galleries page displays a grid of gallery teasers. Each gallery teaser is
+ * themed as a node using node.tpl.php or one if its overrides. Where that
+ * template file calls @code render($content) @endcode, the output of this
+ * function is returned.
+ */
+function theme_media_gallery_teaser($variables) {
+  $element = $variables['element'];
+  $node = $element['#node'];
+
+  if (isset($element['media_gallery_media'][0])) {
+    $element['media_gallery_media'][0]['#theme'] = 'media_gallery_file_field_inline';
+    $image = drupal_render($element['media_gallery_media'][0]);
+  }
+  else {
+    $image = theme('image', array('path' => drupal_get_path('module', 'media_gallery') . '/images/empty_gallery.png'));
+  }
+
+  $link_vars = array();
+  $link_vars['image'] = $image;
+  $uri = entity_uri('node', $node);
+  $link_vars['link_path'] = $uri['path'];
+  $link_vars['classes'] = array('media-gallery-thumb');
+
+  $output = '<div class="media-collection-item-wrapper"><img class="stack-image" src="' . base_path() . drupal_get_path('module', 'media_gallery') . '/images/stack_bg.png" />' . theme('media_gallery_item', $link_vars);
+
+  // Set the variables to theme the meta data if there is a term on the node
+  if ($node->term) {
+    $term = $node->term;
+    $meta_vars = array();
+    $meta_vars['display'] = $term->media_gallery_gallery_info[LANGUAGE_NONE][0]['value'];
+    $meta_vars['location'] = $term->media_gallery_image_info_where[LANGUAGE_NONE][0]['value'];
+    $meta_vars['title'] = $node->title;
+    $meta_vars['num'] = count($node->media_gallery_media_original[LANGUAGE_NONE]);
+    $meta_vars['link_path'] = $link_vars['link_path'];
+
+    // Add the meta information
+    $output .= theme('media_gallery_meta', $meta_vars);
+  }
+
+  $output .= '</div>';
+
+  return $output;
+}
+
+/**
+ * Template preprocess function for displaying a media item (entity) as a
+ * thumbnail on the gallery page.
+ */
+function template_preprocess_media_gallery_media_item_thumbnail(&$variables) {
+  $element = $variables['element'];
+
+  // Attach the colorbox javascript if the format calls for it.
+  $format = $element['#media_gallery_entity']->media_gallery_format[LANGUAGE_NONE][0]['value'];
+  if (is_numeric(strpos($format, 'lightbox'))) {
+    $element['file']['#attached']['js'][] = drupal_get_path('module', 'media_gallery') . '/colorbox-display.js';
+    $element['file']['#attached']['library'][] = array('media_gallery', 'colorbox');
+  }
+
+  // Get the rendered file without annoying DIV wrappers.
+  $element['file']['#theme'] = 'media_gallery_file_field_inline';
+  $image = drupal_render($element['file']);
+
+  $gallery_id = $element['#media_gallery_entity']->nid;
+  $media_id = $element['#media_gallery_media_entity']->fid;
+
+  // Add a class for the wrapper.
+  $variables['classes_array'][] = 'media-gallery-item-wrapper';
+
+  // Create an array of variables to be added to the main image link.
+  $link_vars = array();
+  $link_vars['image'] = $image;
+  $link_vars['link_path'] = "media-gallery/detail/$gallery_id/$media_id";
+  $link_vars['classes'] = array('media-gallery-thumb');
+  $link_vars['title'] = t('View larger image');
+  // Add the image as a link to the detailed view
+  $variables['media_gallery_item'] = theme('media_gallery_item', $link_vars);
+
+  // Set the variables to theme the metadata.
+  $meta_vars = array();
+  $meta_vars['display'] = $element['#media_gallery_entity']->media_gallery_image_info[LANGUAGE_NONE][0]['value'];
+  $meta_vars['location'] = $element['#media_gallery_entity']->media_gallery_image_info_where[LANGUAGE_NONE][0]['value'];
+  $meta_vars['title'] = isset($element['media_title']) ? $element['media_title'][0]['#markup'] : '';
+  $meta_vars['link_path'] = $link_vars['link_path'];
+  $color = 'dark';
+  if ($meta_vars['location'] == 'hover') {
+    $color = 'light';
+  }
+  $meta_vars['license'] = theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array('#view_mode' => 'media_gallery_thumbnail'), 'color' => $color));
+
+  // Theme the metadata.
+  $variables['media_gallery_meta'] = theme('media_gallery_meta', $meta_vars);
+}
+
+/**
+ * Displays a media item (entity) within a lightbox.
+ *
+ * Clicking a thumbnail within the gallery page opens a lightbox if all these
+ * conditions are met:
+ * - The gallery node's media_gallery_format field indicates to open a lightbox.
+ * - The colorbox jQuery plugin is available.
+ * - The user has JavaScript enabled.
+ *
+ * The lightbox contains some navigation functionality (including a "slideshow"
+ * link) and a <div> containing the actual content. This function themes the
+ * contents of that <div>.
+ *
+ * When any of the conditions for opening a lightbox aren't met, the user is
+ * taken to a separate detail page instead, the contents of which are themed by
+ * theme_media_gallery_media_item_detail().
+ */
+function theme_media_gallery_media_item_lightbox($variables) {
+  $element = $variables['element'];
+  $gallery_node = new FieldsRSIPreventor($element['#media_gallery_entity']);
+  $media_entity = $element['#media_gallery_media_entity'];
+
+  unset($element['file']['#theme']);
+  $image = drupal_render($element['file']);
+
+  $matches = NULL;
+  if (preg_match('@<img .*?/>@', $image, $matches)) {
+    $image = $matches[0];
+  }
+  else {
+
+  }
+
+  $gallery_id = $element['#media_gallery_entity']->nid;
+  $media_id = $element['#media_gallery_media_entity']->fid;
+
+  // Create an array of variables to be added to the main image link.
+  $link_vars = array();
+  $link_vars['image'] = $image;
+  $link_vars['link_path'] = "media-gallery/detail/$gallery_id/$media_id";
+
+  if ($gallery_node->getValue('media_gallery_allow_download') == TRUE) {
+    $download_link = theme('media_gallery_download_link', array('file' => $media_entity));
+  }
+  else {
+    // Very ugly fix: This prevents the license info from being either hidden
+    // or causing scrollbars (depending on the browser) in cases where a
+    // download link is not being shown. There may be a CSS-only fix for this,
+    // but we haven't found one yet.
+    $download_link = '&nbsp;';
+  }
+
+  $media_gallery_detail =
+      '<div class="lightbox-stack">' .
+      theme('media_gallery_item', $link_vars) .
+      '<div class="media-gallery-detail-info">' .
+      $download_link .
+      theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array(), 'color' => 'medium')) .
+      '</div></div>';
+  // The license info has been themed already, keep it from being rendered as a child
+  $element['field_license']['#access'] = FALSE;
+
+  $output = 'Error';
+  // If the format is to have the description as well, we add it here
+  if ($gallery_node->media_gallery_format[LANGUAGE_NONE][0]['value'] === 'lightbox_text') {
+    $output =
+    '<div class="mg-lightbox-wrapper clearfix">' .
+      '<div class="lightbox-title">' . drupal_render($element['media_title']) . '</div>' .
+      '<div class="mg-lightbox-detail">' .
+      $media_gallery_detail .
+      '</div><div class="no-overflow">' .
+        drupal_render_children($element) .
+      '</div>' .
+    '</div>';
+  } else {
+    $output = $media_gallery_detail;
+  }
+
+  return $output;
+}
+
+/**
+ * Displays a media item (entity) as its own page, within gallery context.
+ *
+ * @see theme_media_gallery_media_item_lightbox()
+ */
+function theme_media_gallery_media_item_detail($variables) {
+  $element = $variables['element'];
+  $gallery_node = new FieldsRSIPreventor($element['#media_gallery_entity']);
+  $media_entity = $element['#media_gallery_media_entity'];
+  // Page number for next and previous pages and current page.
+  $i_next = NULL;
+  $i_previous = NULL;
+  $i_current = NULL;
+
+  // Not considering the possibility of this field being translatable, at the
+  // moment. Is there a use-case for a media field (which is just a reference to
+  // a media entity) to be translatable?
+  $media_ids = array();
+  foreach ($gallery_node->media_gallery_media[LANGUAGE_NONE] as $delta => $item) {
+    $media_ids[] = _media_gallery_get_media_fid($item);
+  }
+  $media_ids = array_values(array_unique($media_ids));
+
+  // Get the variables needed for previous and next buttons and "Image X of Y"
+  // text.
+  $num_items = count($media_ids);
+  foreach ($media_ids as $i => $id) {
+    if ($id == $media_entity->fid) {
+      $i_current = $i;
+      break;
+    }
+  }
+
+  $i_previous = $i_current - 1;
+  $i_next = $i_current + 1;
+
+  if ($i_previous < 0) {
+    $i_previous = NULL;
+  }
+
+  $i_next = $i_current + 1;
+  if ($i_next > $num_items - 1) {
+    $i_next = NULL;
+  }
+
+  if ($gallery_node->getValue('media_gallery_allow_download') == TRUE) {
+    $download_link = theme('media_gallery_download_link', array('file' => $media_entity));
+  }
+  else {
+    // Very ugly fix: This prevents the license info from being either hidden
+    // or causing scrollbars (depending on the browser) in cases where a
+    // download link is not being shown. There may be a CSS-only fix for this,
+    // but we haven't found one yet.
+    $download_link = '&nbsp;';
+  }
+
+  $previous_link = !is_null($i_previous) ? l(t('« Previous'), "media-gallery/detail/{$gallery_node->nid}/{$media_ids[$i_previous]}", array('html' => TRUE, 'attributes' => array('class' => 'prev'))) : '';
+  $next_link = !is_null($i_next) ? l(t('Next »'), "media-gallery/detail/{$gallery_node->nid}/{$media_ids[$i_next]}", array('html' => TRUE, 'attributes' => array('class' => 'next'))) : '';
+
+  // Render the file out in a wrapper
+  $output =
+    '<div class="media-gallery-detail-wrapper">' .
+    '<div class="media-gallery-detail">' .
+      drupal_render($element['file']) .
+      '<div class="media-gallery-detail-info">' . $download_link .
+        theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array('#view_mode' => 'media_gallery_detail'), 'color' => 'dark')) .
+      '</div>' .
+      '<div class="media-gallery-detail-info">' .
+        '<span class="media-gallery-back-link">' .
+          l('« Back to gallery', 'node/' . $gallery_node->nid) .
+        '</span>' .
+        '<span class="media-gallery-detail-image-info-wrapper">' .
+          '<span class="media-gallery-image-count">' .
+            t("Image %current of %total", array('%current' => $i_current + 1, '%total' => $num_items)) .
+          '</span>' .
+          '<span class="media-gallery-controls">' .
+            $previous_link .
+            (!empty($previous_link) && !empty($next_link) ? ' | ' : '') .
+            $next_link .
+          '</span>' .
+        '</span>' .
+      '</div>' .
+    '</div>';
+
+  // Set the title and license to be #access = false so they don't get rendered as children
+  $element['media_title']['#access'] = FALSE;
+  $element['field_license']['#access'] = FALsE;
+
+  $output .=
+    '<div class="no-overflow">' .
+      drupal_render_children($element) .
+    '</div></div>';
+
+  return $output;
+}
+
+/**
+ * Displays a media item (entity) as a thumbnail in a block
+ */
+function theme_media_gallery_block_thumbnail($variables) {
+  $element = $variables['element'];
+
+  // Get the rendered file without annoying DIV wrappers.
+  $element['file']['#theme'] = 'media_gallery_file_field_inline';
+  $image = drupal_render($element['file']);
+
+  // Create some variables to be added to the main image link
+  $classes = array('media-gallery-thumb');
+  $gallery_id = $element['#media_gallery_entity']->nid;
+  $media_id = $element['#media_gallery_media_entity']->fid;
+  $link_path = "media-gallery/detail/$gallery_id/$media_id";
+
+  // Create a wrapper
+  $output = '<div class="media-gallery-item-wrapper">';
+  // Style the thumbnail as a link
+  $output .= theme('media_gallery_item', array('image' => $image, 'link_path' => $link_path, 'classes' => $classes));
+  // Close the wrapper
+  $output .= '</div>';
+
+  return $output;
+}
+
+/**
+ * Displays a media item (entity) as a thumbnail on a Gallery collection page
+ */
+function theme_media_gallery_collection_thumbnail($variables) {
+  $element = $variables['element'];
+
+  // Get the rendered file without annoying DIV wrappers.
+  $element['file']['#theme'] = 'media_gallery_file_field_inline';
+  $image = drupal_render($element['file']);
+
+  $link_vars = array();
+  $link_vars['image'] = $image;
+  $link_vars['link_path'] = 'something';
+  $link_vars['classes'] = 'media-gallery-thumb';
+
+  $output = '<div class="media-gallery-item-wrapper">' . theme('media_gallery_item', $link_vars) . '</div>';
+
+  return $output;
+}
+
+/**
+ * Theme the thumbnail link for a media gallery item
+ *
+ * @param string $image
+ *   Which meta data fields to display
+ * @param string $link_path
+ *   The location to place the meta data on the media item
+ * @param string $classes
+ *   An array of classes to attach to the link.
+ *
+ */
+function theme_media_gallery_item($variables) {
+  $image = $variables['image'];
+  $link_path = $variables['link_path'];
+  $attributes = array();
+  if (!empty($variables['classes'])) {
+    $attributes['class'] = $variables['classes'];
+    $attributes['class'][] = 'cbEnabled';
+  }
+  if (!empty($variables['title'])) {
+    // I'm fairly sure I don't like this solution.  But as Alex mentions in
+    // theme_media_gallery_file_field_inline() the File Styles module isn't allowing
+    // us access to the render array pre-rendering, so I'm doing a str_replace()
+    // here specifically to address the title and alt for thumbnails.
+    $new_image = str_replace(array('title=""', 'alt=""'), array('title="'.$variables['title'].'"', 'alt="'.$variables['title'].'"'), $image);
+    $image = $new_image;
+  }
+
+  // Add sliding door top div and wrappers
+  $item = '<div class="media-gallery-item"><div class="top"><div class="top-inset-1"><div class="top-inset-2"></div></div></div><div class="gallery-thumb-outer"><div class="gallery-thumb-inner">';
+  // Create a link around the image
+  $item .= l($image, $link_path, array('html' => TRUE, 'attributes' => $attributes));
+  // Add sliding door bottom div and close wrappers
+  $item .= '</div></div><div class="bottom"><div class="bottom-inset-1"><div class="bottom-inset-2"></div></div></div></div>';
+  return $item;
+}
+
+/**
+ * Theme the meta data for a media gallery item
+ *
+ * @param string $display
+ *   Which meta data fields to display
+ * @param string $location
+ *   The location to place the meta data on the media item
+ * @param string $title
+ *   The title to display (if applicable)
+ * @param string $license
+ *   The license information for the media item
+ *
+ */
+function theme_media_gallery_meta($variables) {
+  $display = $variables['display'];
+  $location = $variables['location'];
+  $title = $variables['title'];
+  $license = $variables['license'];
+  $num = $variables['num'];
+  $link_path = $variables['link_path'];
+  $meta = '';
+
+  // If we display nothing, nothing else matters
+  if ($display != 'nothing') {
+    // Add a wrapper around the meta data
+    #$meta .= '<div class="meta-wrapper ' . $location . '">';
+    // Add title
+    $attributes = array('class' => array('meta-wrapper', 'cbEnabled', $location));
+    if (is_numeric(strpos($display, 'title'))) {
+      $meta .= $title ? '<span class="media-title">' . $title . '</span>' : '';
+    }
+    // Add the license information
+    if (is_numeric(strpos($display, 'license')) && isset($license)) {
+      $meta .= $license ? $license : '';
+    }
+    if (is_numeric(strpos($display, 'num')) && isset($num)) {
+      $meta .= '<span class="image-count">' . format_plural($num, '%num image', '%num images', array('%num' => $num)) . '</span>';
+    }
+    // Close the wrapper around the meta data
+    $meta_link = l($meta, $link_path, array('attributes' => $attributes, 'html' => TRUE));
+  }
+
+  return $meta_link;
+}
+
+/**
+ * Returns HTML for a link to a file.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - file: A file object to which the link will be created.
+ *   - text: (optional) The link text. Defaults to t('Download original image').
+ *   - options: (optional) Extra options to pass to l().
+ *
+ * @see theme_file_link()
+ *
+ * @ingroup themeable
+ *
+ * @todo Move to Media module?
+ */
+function theme_media_gallery_download_link($variables) {
+  $file = $variables['file'];
+  $text = $variables['text'];
+  $options = $variables['options'];
+
+  // Link to "media/FID/download", so that Drupal can set the
+  // Content-Disposition header as needed to instruct the browser to download
+  // rather than display the file. Append the file name at the end to work
+  // around Internet Explorer's deficiencies in understanding HTTP headers.
+  $path = 'media/' . $file->fid . '/download/' . $file->filename;
+
+  if (!isset($text)) {
+    $text = t('Download original image');
+  }
+
+  // Set options as per anchor format described at
+  // http://microformats.org/wiki/file-format-examples
+  $options['attributes']['type'] = $file->filemime . '; length=' . $file->filesize;
+  $options['attributes']['class'] = 'gallery-download';
+
+  return l($text, $path, $options);
+}
+
+/*
+ * Turns the license information into the Creative Commons images.
+ */
+function theme_media_gallery_license($variables) {
+  if (isset($variables['element']['#items'][0]['value'])) {
+    $item = $variables['element']['#items'][0]['value'];
+  }
+  else {
+    $item = 'none';
+  }
+  $color = $variables['color'];
+  $options = explode('_', $item);
+
+  // Open a wrapper around the icons.
+  $output = '<span class="media-license ' . $color . '">';
+
+  if (empty($item) || $item === 'none') {
+    $output .= '<span class="copyright" title="All rights reserved"></span>';
+  }
+
+  $output .= in_array('cc', $options) ? '<span class="attribution" title="Attribution"></span>' : '';
+  $output .= in_array('nc', $options) ? '<span class="non-commercial" title="Non-Commercial"></span>' : '';
+  $output .= in_array('sa', $options) ? '<span class="share-alike" title="Share Alike"></span>' : '';
+  $output .= in_array('nd', $options) ? '<span class="no-deriv" title="No Derivative Works"></span>' : '';
+
+  $output .= '</span>';
+
+  return $output;
+}
+
+/**
+ * Renders a file field for use where block-level HTML tags are not wanted, such as in a link.
+ *
+ * This theme function is called instead of theme_field(), and therefore, we
+ * bypass all the container DIV tags normally added for fields.
+ */
+function theme_media_gallery_file_field_inline($variables) {
+  $element = $variables['element'];
+
+  $output = drupal_render_children($element);
+
+  // @todo Most likely, the image was rendered using a Styles module formatter
+  //   (probably a File Styles wrapper to an image style). The Styles module
+  //   needs to be improved to integrate properly into Drupal 7 rendering, so
+  //   that we can adjust the render array before rendering it. But until the
+  //   Styles module is sufficiently improved, we're stuck with getting back a
+  //   rendered string containing a DIV wrapper around the image. So here, we
+  //   remove all DIV tags, which is totally hacky, and exactly the kind of
+  //   stuff that the D7 render system is meant to avoid.
+  $output = trim(preg_replace('@</?div.*?/?\>@', '', $output));
+
+  return $output;
+}
