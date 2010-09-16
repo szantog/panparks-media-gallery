@@ -10,7 +10,7 @@ Drupal.media_gallery = {};
 
 Drupal.media_gallery.open_browser = function (event) {
   event.preventDefault();
-  var pluginOptions = { 'multiselect' : true , 'types': ['image']};
+  var pluginOptions = { 'id': 'media_gallery_add_image', 'multiselect' : true , 'types': ['image']};
   Drupal.media.popups.mediaBrowser(Drupal.media_gallery.add_images, pluginOptions);
 };
 
