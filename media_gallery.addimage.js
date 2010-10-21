@@ -2,7 +2,7 @@
 
 Drupal.behaviors.media_gallery = {};
 Drupal.behaviors.media_gallery.attach = function (context, settings) {
-  // Bind a click handler to the 'add images' link.
+  // Bind a click handler to the 'add media' link.
   $('a.media-gallery-add.launcher').once('media-gallery-add-processed').bind('click', Drupal.media_gallery.open_browser);
 };
 
@@ -10,19 +10,19 @@ Drupal.media_gallery = {};
 
 Drupal.media_gallery.open_browser = function (event) {
   event.preventDefault();
-  var pluginOptions = { 'id': 'media_gallery', 'multiselect' : true , 'types': ['image']};
-  Drupal.media.popups.mediaBrowser(Drupal.media_gallery.add_images, pluginOptions);
+  var pluginOptions = { 'id': 'media_gallery', 'multiselect' : true , 'types': ['image', 'video']};
+  Drupal.media.popups.mediaBrowser(Drupal.media_gallery.add_media, pluginOptions);
 };
 
-Drupal.media_gallery.add_images = function (mediaFiles) {
+Drupal.media_gallery.add_media = function (mediaFiles) {
   // TODO AN-17966: Add the images to the node's media multifield on the client
   // side instead of reloading the page.
-  var imagesAdded = function (returnedData, textStatus, XMLHttpRequest) {
+  var mediaAdded = function (returnedData, textStatus, XMLHttpRequest) {
     parent.window.location.reload();
   };
 
   var errorCallback = function () {
-    //console.warn('Error: Images not added.');
+    //console.warn('Error: Media not added.');
   };
 
   var src = Drupal.settings.basePath + 'media-gallery/add-images/' + Drupal.settings.mediaGalleryNid + '/' + Drupal.settings.mediaGalleryToken;
@@ -39,7 +39,7 @@ Drupal.media_gallery.add_images = function (mediaFiles) {
     dataType: 'json',
     data: {files: media},
     error: errorCallback,
-    success: imagesAdded
+    success: mediaAdded
   });
   
   return false;

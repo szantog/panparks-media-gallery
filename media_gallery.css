@@ -1,5 +1,5 @@
 
-/* Node edit form styles */
+/* @group Node edit form styles */
 
 .settings-group {
   clear: both;
@@ -60,34 +60,8 @@
   overflow: hidden;
 }
 
-.field-name-media-gallery-format {
-  float: left;
-  margin-bottom: 1em;
-  width: 100%;
-}
-
-.field-name-media-gallery-format .form-type-radio {
-  float: left;
-  width: 31%;
-}
-
-.field-name-media-gallery-format .form-type-radio + .form-type-radio {
-  margin-left: 2%;
-}
-
-.field-name-media-gallery-format .form-type-radio > input {
-  float: left;
-}
-
-.field-name-media-gallery-format .form-type-radio img {
-  float: left;
-  height: 44px;
-  margin: 0 0.5em;
-  vertical-align: top;
-  width: 42px;
-}
-
-.field-name-media-gallery-format .form-type-radio label.option {
+.field-name-media-gallery-format .form-type-radio label.option,
+.field-name-media-gallery-lightbox-extras .form-type-checkbox label.option {
   font-size: 0.94em;
   line-height: 1.2em;
 }
@@ -98,7 +72,8 @@
   font-size: 0.86em;
 }
 
-.no-label label {
+.no-label label,
+.no-group-label > .form-item > label {
   display: none;
 }
 
@@ -109,18 +84,6 @@
   height: 44px;
   margin: 0 0.5em;
   width: 42px;
-}
-
-.l-icon {
-  background-position: -1px -1px;
-}
-
-.lt-icon {
-  background-position: -110px -1px;
-}
-
-.n-icon {
-  background-position: -221px -1px;
 }
 
 .settings-group .setting-icon {
@@ -136,18 +99,6 @@
   background-position: 0 -57px;
 }
 
-.presentation-settings .setting-icon.l-icon {
-  background-position: 0 -57px;
-}
-
-.presentation-settings .setting-icon.lt-icon {
-  background-position: -110px -57px;
-}
-
-.presentation-settings .setting-icon.n-icon {
-  background-position: -221px -57px;
-}
-
 .block-settings .setting-icon {
   background-position: -331px -57px;
 }
@@ -156,19 +107,41 @@
   background-position: -552px -57px;
 }
 
-/* Galleries form styles */
+/* @end */
+
+/* @group Galleries form styles */
 
 .form-media-gallery-collection .field-name-field-license {
   clear: both;
 }
 
-/* Gallery thumbnail styles */
+#edit-media-gallery-lightbox-extras {
+  margin-left: 2em;
+  margin-top: -1em;
+}
+
+.presentation-settings .setting-icon.display-page {
+  background-position: -221px -57px;
+}
+
+.presentation-settings .setting-icon.display-lightbox {
+  background-position: 0 -57px;
+}
+
+.presentation-settings .setting-icon.display-extras {
+  background-position: -110px -57px;
+}
+
+/* @end */
+
+/* @group Gallery thumbnail styles */
 
 .media-gallery-collection a.media-gallery-thumb,
 .media-gallery-media a.media-gallery-thumb,
 .media-gallery-thumb img {
   display: block;
-  overflow: auto;
+  overflow: hidden;
+  position: relative;
 }
 
 .media-gallery-media > .field-items > .field-item {
@@ -181,11 +154,10 @@
   position: relative;
 }
 
-.media-gallery-media .media-gallery-item,
-.media-gallery-collection .media-gallery-item {
+.media-gallery-media .media-gallery-item {
   background: #FFFFFF;
   border: 1px solid #666666;
-  padding: 4.5%;
+  padding: 2%;
 }
 
 .meta-wrapper,
@@ -193,26 +165,33 @@
 .meta-wrapper:hover,
 .meta-wrapper:visited,
 .meta-wrapper:active {
-  color: #FFF;
+  font-size: 0.8462em;
   line-height: 1.5em;
   min-height: 3em;
-  font-size: 0.8462em;
+  vertical-align: top;
 }
 
+.meta-wrapper .media-title * .field-item,
 .meta-wrapper .media-title {
-  display: block;
-  height: 1.3em;
-  line-height: 1.3em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.meta-wrapper .media-title * .field-item {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
   -moz-binding: url('ellipsis.xml#ellipsis');
+}
+
+.meta-wrapper {
+  display: block;
+  padding: 0 9%;
+}
+
+.meta-wrapper.hover {
+  line-height: 1em;
+  padding: 0;
+}
+
+.meta-wrapper .media-description span {
+  white-space: nowrap;
 }
 
 .media-license {
@@ -301,46 +280,102 @@
 }
 
 .meta-wrapper.hover {
-  background: url('images/hover-dark-bg.png') repeat left top transparent;;
-  bottom: 0;
-  color: #FFF;
+  color: #666;
   display: none;
-  left: 0;
+  left: -2px;
   line-height: 1.25em;
-  margin: 0;
+  margin: -7px 0 0;
   min-height: 0;
-  padding: 0.3em 0.5em;
+  min-width: 100%;
   position: absolute;
-  right: 0;
+  *right: -2px;
+  top: 100%;
+  z-index: 1;
+}
+
+.meta-wrapper.hover .slider {
+  background: url('images/hover-bubble.png') no-repeat left top transparent;
+  display: block;
+}
+
+.meta-wrapper.hover .slider.top {
+  padding-left: 53px;
+}
+
+.meta-wrapper.hover .slider.top-inner {
+  background-position: right -48px;
+  height: 14px;
+}
+
+.meta-wrapper.hover .slider.meta-outer {
+  background: url('images/hover-bubble-middle.png') repeat-y left top transparent;
+  padding-left: 0.5em;
+}
+
+.meta-wrapper.hover .slider.meta-inner {
+  background: url('images/hover-bubble-middle.png') repeat-y right top transparent;
+  padding-right: 0.5em;
+}
+
+.meta-wrapper.hover .slider.bottom {
+  background-position: left -42px;
+  padding-left: 53px;
+}
+
+.meta-wrapper.hover .slider.bottom-inner {
+  background-position: right bottom;
+  height: 5px;
+}
+
+.meta-wrapper .media-title {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  height: 1.5em;
+  line-height: 1.5em;
+  white-space: nowrap;
 }
 
 .meta-wrapper.hover .media-title {
-  font-weight: normal;
-  line-height: inherit;
+  color: #000;
 }
 
 .meta-wrapper.hover .media-title a,
 .meta-wrapper.hover .media-title a:hover {
-  color: #FFF;
+  color: #000;
 }
 
 .media-gallery-item-wrapper:hover .meta-wrapper.hover,
-.media-collection-item-wrapper:hover .meta-wrapper.hover {
+.media-collection-item-wrapper:hover + .meta-wrapper.hover,
+.meta-wrapper.hover:hover {
   display: block;
+}
+
+.meta-inner span {
+  display: block;
+}
+
+.media-description span {
+  display: inline;
+  line-height: 1em;
 }
 
 em.placeholder {
   font-style: normal;
 }
 
-/* Gridding styles */
+/* @end */
+
+/* @group Gridding styles */
 
 .media-gallery-media {
 
 }
 
 .mg-col {
-  margin: 0 -0.5em;
+  display: inline-block;
+  margin: 0 -0.5em 3em;
+  width: 100%;
 }
 
 .mg-col > .field-items {
@@ -354,54 +389,61 @@ a.media-gallery-thumb img,
   width: 100%;
 }
 
+/**
+ * The following widths are inflected with !important to
+ * prevent users in the ThemeBuilder from destroying the
+ * presentation of their galleries if they alter the width
+ * of items with the .field class.
+ */
 .mg-col-1 > .field-items > .field-item,
-.mg-col-1 .node {
-  width: 100%;
+.mg-col-1 .node,
+.media-gallery-detail .field-items > .field-item {
+  width: 100% !important;
 }
 
 .mg-col-2 > .field-items > .field-item,
 .mg-col-2 .node {
-  width: 50%;
+  width: 50% !important;
 }
 
 .mg-col-3 > .field-items > .field-item,
 .mg-col-3 .node {
-  width: 33.3%;
+  width: 33.3% !important;
 }
 
 .mg-col-4 > .field-items > .field-item,
 .mg-col-4 .node {
-  width: 24.96%;
+  width: 24.96% !important;
 }
 
 .mg-col-5 > .field-items > .field-item,
 .mg-col-5 .node {
-  width: 20%;
+  width: 20% !important;
 }
 
 .mg-col-6 > .field-items > .field-item,
 .mg-col-6 .node {
-  width: 16.6666666665%;
+  width: 16.6666666665% !important;
 }
 
 .mg-col-7 > .field-items > .field-item,
 .mg-col-7 .node {
-  width: 14.2857142857%;
+  width: 14.2857142857% !important;
 }
 
 .mg-col-8 > .field-items > .field-item,
 .mg-col-8 .node {
-  width: 12.5%;
+  width: 12.5% !important;
 }
 
 .mg-col-9 > .field-items > .field-item,
 .mg-col-9 .node {
-  width: 11.1111111111%;
+  width: 11.1111111111% !important;
 }
 
 .mg-col-10 > .field-items > .field-item,
 .mg-col-10 .node {
-  width: 10%;
+  width: 10% !important;
 }
 
 .mg-col .node-media-gallery.node-teaser {
@@ -420,10 +462,13 @@ a.media-gallery-thumb img,
 
 .mg-col .node-media-gallery.node-teaser .float-overflow {
   margin: 0.5em;
+  overflow: visible;
   position: relative;
 }
 
-/* Detail page styles */
+/* @end */
+
+/* @group Detail page styles */
 
 .media-gallery-detail-wrapper {
   margin-top: 1em;
@@ -432,8 +477,8 @@ a.media-gallery-thumb img,
 .media-gallery-detail {
   float: left;
   margin-right: 1em;
-  width: 60%;
   line-height: normal;
+  max-width: 70%;
 }
 
 .media-gallery-detail-wrapper .field-name-media-description .field-item {
@@ -442,10 +487,11 @@ a.media-gallery-thumb img,
 
 .media-gallery-detail-info {
   clear: both;
-  display: block;
+  display: inline-block;
   margin-top: 0.5em;
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .media-gallery-detail-info .media-license {
@@ -467,7 +513,9 @@ a.media-gallery-thumb img,
   padding-right: 1em;
 }
 
-/* lightbox styles */
+/* @end */
+
+/* @group Lightbox styles */
 
 #cboxSlideshow {
   right: 40px;
@@ -475,7 +523,6 @@ a.media-gallery-thumb img,
 
 .mg-lightbox-wrapper {
   color: #666666;
-  width: 750px;
 }
 
 .mg-lightbox-wrapper a,
@@ -508,14 +555,22 @@ a.media-gallery-thumb img,
 
 .mg-lightbox-detail {
   float: left;
-  margin-right: 1em;
+  padding-right: 320px;
+}
+
+.mg-lightbox-description {
+  width: 300px;
+  margin-left: -300px;
+  float: left;
 }
 
 .lightbox-stack {
   min-width: 250px;
 }
 
-/* Gallery of Galleries styles */
+/* @end */
+
+/* @group Gallery of Galleries styles */
 
 .media-collection-item-wrapper {
   padding: 9%;
@@ -532,11 +587,12 @@ a.media-gallery-thumb img,
 
 .media-collection-item-wrapper .media-gallery-item {
   border: none;
-  padding: 0;
   position: relative;
 }
 
-/* Contextual links overrides */
+/* @end */
+
+/* @group Overrides */
 
 a.contextual-links-trigger {
   background-position: 2px -18px;
@@ -546,3 +602,10 @@ a.contextual-links-trigger:hover,
 div.contextual-links-active a.contextual-links-trigger {
   background-position: 2px 0;
 }
+
+/* remove extra padding around the iframe */
+.ui-dialog .media-modal-frame {
+  padding: 0 !important;
+}
+
+/* @end */

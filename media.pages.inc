@@ -24,9 +24,20 @@ function media_download($media) {
   $uri = $media->uri;
   $scheme = file_uri_scheme($uri);
   if (file_stream_wrapper_valid_scheme($scheme) && file_exists($uri)) {
-    $headers = module_invoke_all('file_download', $uri);
-    if (in_array(-1, $headers)) {
-      return drupal_access_denied();
+    // Let other modules provide headers and controls access to the file.
+    // module_invoke_all() uses array_merge_recursive() which merges header
+    // values into a new array. To avoid that and allow modules to override
+    // headers instead, use array_merge() to merge the returned arrays.
+    $headers = array();
+    foreach (module_implements('file_download') as $module) {
+      $function = $module . '_file_download';
+      $result = $function($uri);
+      if ($result == -1) {
+        return drupal_access_denied();
+      }
+      if (isset($result) && is_array($result)) {
+        $headers = array_merge($headers, $result);
+      }
     }
     // Default Content-Type and Content-Length headers, in case no other
     // hook_file_download() implementation set them.

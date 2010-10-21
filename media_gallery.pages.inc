@@ -90,6 +90,8 @@ function media_gallery_detail_page($gallery_node, $media_entity) {
   $title = _media_gallery_get_media_title($media_entity);
   drupal_set_title($title);
 
+  drupal_add_js(drupal_get_path('module', 'media_gallery') . '/media_gallery.js');
+
   $return = media_gallery_item_view($gallery_node, $media_entity, array('type' => 'media_gallery_detail'));
   return $return;
 }
@@ -98,17 +100,17 @@ function media_gallery_detail_page($gallery_node, $media_entity) {
  * Menu callback; view a single gallery media entity as the content of a lightbox.
  */
 function media_gallery_lightbox_page($gallery_node, $media_entity) {
-  // In order for the image to be displayed properly inside the lightbox and
+  // In order for the media to be displayed properly inside the lightbox and
   // interact correctly with the JavaScript that resizes the lightbox, it needs
   // to have 'width' and 'height' tags. To get these, however, requires an
-  // actual image file, so for images where the derivative hasn't been
+  // actual media file, so for media where the derivative hasn't been
   // generated yet, we have to create it beforehand so we can determine its
   // width and height.
   $instance = field_info_instance('media', 'file', 'image');
   $display = field_get_display($instance, 'media_gallery_lightbox');
   if (preg_match('@^styles_(.*?)_(.*?)$@i', $display['type'], $matches)) {
     $style_name = $matches[2];
-    // Check if the image file already exists at its final path; if not, create
+    // Check if the media file already exists at its final path; if not, create
     // the derivative.
     $style_path = image_style_path($style_name, $media_entity->uri);
     if (!file_exists($style_path)) {
@@ -117,7 +119,7 @@ function media_gallery_lightbox_page($gallery_node, $media_entity) {
     }
     // Now that we expect the file to actually exist, we can find its width and
     // height and pass this information on as an override so that it appears as
-    // attributes on the final rendered image.
+    // attributes on the final rendered media.
     $info = image_get_info($style_path);
     $media_entity->override = array(
       'width' => $info['width'],
@@ -320,6 +322,13 @@ function media_gallery_add_images($node) {
  *   The media item object to remove from the gallery.
  */
 function media_gallery_remove_item_form($form, &$form_state, $node, $media) {
+  // Set the breadcrumb.
+  $node_url_arguments = entity_uri('node', $node);
+  drupal_set_breadcrumb(array(
+    l(t('Home'), NULL),
+    l($node->title, $node_url_arguments['path'], $node_url_arguments['options']),
+  ));
+
   $form['nid'] = array(
     '#type' => 'value',
     '#value' => $node->nid,
@@ -354,6 +363,13 @@ function media_gallery_media_page_edit($gallery, $media) {
   // The Media Gallery module defines titles differently than just using the
   // filename.
   drupal_set_title(t('<em>Edit @type</em> @title', array('@type' => $media->type, '@title' => _media_gallery_get_media_title($media))), PASS_THROUGH);
+
+  // Set the breadcrumb.
+  $node_url_arguments = entity_uri('node', $gallery);
+  drupal_set_breadcrumb(array(
+    l(t('Home'), NULL),
+    l($gallery->title, $node_url_arguments['path'], $node_url_arguments['options']),
+  ));
 
   // We'll be reusing Media module's 'media_edit' form, so we need to load its
   // include file. In addition to loading it here, we also set the include file
@@ -409,6 +425,6 @@ function media_gallery_media_page_multiedit($node) {
 
   // If we're here, then we haven't redirected, so override the page title set
   // by media_page_multiedit() and return the form.
-  drupal_set_title(t('<em>Edit images for</em> @title', array('@type' => $node->type, '@title' => $node->title)), PASS_THROUGH);
+  drupal_set_title(t('<em>Edit media for</em> @title', array('@type' => $node->type, '@title' => $node->title)), PASS_THROUGH);
   return $form;
 }

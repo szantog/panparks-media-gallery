@@ -71,17 +71,34 @@ function theme_media_gallery_teaser($variables) {
   if ($node->term) {
     $term = $node->term;
     $meta_vars = array();
-    $meta_vars['display'] = $term->media_gallery_gallery_info[LANGUAGE_NONE][0]['value'];
     $meta_vars['location'] = $term->media_gallery_image_info_where[LANGUAGE_NONE][0]['value'];
     $meta_vars['title'] = $node->title;
-    $meta_vars['num'] = count($node->media_gallery_media_original[LANGUAGE_NONE]);
     $meta_vars['link_path'] = $link_vars['link_path'];
+    // Organize the file count by type. We only expect images and videos for
+    // now, so we put those first and group the others together into a general
+    // category at the end.
+    $type_count = media_gallery_get_media_type_count($node, 'media_gallery_media_original');
+    $description = array();
+    if (isset($type_count['image'])) {
+      $count = $type_count['image'];
+      $description[] = format_plural($count, '<span>%num image</span>', '<span>%num images</span>', array('%num' => $count));
+      unset($type_count['image']);
+    }
+    if (isset($type_count['video'])) {
+      $count = $type_count['video'];
+      $description[] = format_plural($count, '<span>%num video</span>', '<span>%num videos</span>', array('%num' => $count));
+      unset($type_count['video']);
+    }
+    if (!empty($type_count)) {
+      $count = array_sum($type_count);
+      $description[] = format_plural($count, '<span>%num other item</span>', '<span>%num other items</span>', array('%num' => $count));
+    }
+    $meta_vars['description'] = implode(', ', $description);
+    $output .= '</div>';
 
     // Add the meta information
     $output .= theme('media_gallery_meta', $meta_vars);
   }
-
-  $output .= '</div>';
 
   return $output;
 }
@@ -95,7 +112,8 @@ function template_preprocess_media_gallery_media_item_thumbnail(&$variables) {
 
   // Attach the colorbox javascript if the format calls for it.
   $format = $element['#media_gallery_entity']->media_gallery_format[LANGUAGE_NONE][0]['value'];
-  if (is_numeric(strpos($format, 'lightbox'))) {
+  $lightbox = is_numeric(strpos($format, 'lightbox')) ? TRUE : FALSE;
+  if ($lightbox) {
     $element['file']['#attached']['js'][] = drupal_get_path('module', 'media_gallery') . '/colorbox-display.js';
     $element['file']['#attached']['library'][] = array('media_gallery', 'colorbox');
   }
@@ -107,29 +125,28 @@ function template_preprocess_media_gallery_media_item_thumbnail(&$variables) {
   $gallery_id = $element['#media_gallery_entity']->nid;
   $media_id = $element['#media_gallery_media_entity']->fid;
 
+  // Add a class that is a more targeted version of what template_preprocess()
+  // automatically adds for this theme hook, to enable per-type (e.g., video vs.
+  // image) styling.
+  $variables['classes_array'][] = drupal_html_class('media_gallery_media_item_thumbnail_' . $element['#media_gallery_media_entity']->type);
+
   // Add a class for the wrapper.
   $variables['classes_array'][] = 'media-gallery-item-wrapper';
 
-  // Create an array of variables to be added to the main image link.
+  // Create an array of variables to be added to the main thumbnail link.
   $link_vars = array();
   $link_vars['image'] = $image;
   $link_vars['link_path'] = "media-gallery/detail/$gallery_id/$media_id";
-  $link_vars['classes'] = array('media-gallery-thumb');
-  $link_vars['title'] = t('View larger image');
+  $link_vars['classes'] = $lightbox ? array('media-gallery-thumb', 'cbEnabled') : array('media-gallery-thumb');
+  $link_vars['title'] = $element['#bundle'] == 'image' ? t('View larger image') : t('Watch video');
   // Add the image as a link to the detailed view
   $variables['media_gallery_item'] = theme('media_gallery_item', $link_vars);
 
   // Set the variables to theme the metadata.
   $meta_vars = array();
-  $meta_vars['display'] = $element['#media_gallery_entity']->media_gallery_image_info[LANGUAGE_NONE][0]['value'];
   $meta_vars['location'] = $element['#media_gallery_entity']->media_gallery_image_info_where[LANGUAGE_NONE][0]['value'];
   $meta_vars['title'] = isset($element['media_title']) ? $element['media_title'][0]['#markup'] : '';
   $meta_vars['link_path'] = $link_vars['link_path'];
-  $color = 'dark';
-  if ($meta_vars['location'] == 'hover') {
-    $color = 'light';
-  }
-  $meta_vars['license'] = theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array('#view_mode' => 'media_gallery_thumbnail'), 'color' => $color));
 
   // Theme the metadata.
   $variables['media_gallery_meta'] = theme('media_gallery_meta', $meta_vars);
@@ -175,10 +192,12 @@ function theme_media_gallery_media_item_lightbox($variables) {
   $link_vars = array();
   $link_vars['image'] = $image;
   $link_vars['link_path'] = "media-gallery/detail/$gallery_id/$media_id";
+  $link_vars['no_link'] = $element['#bundle'] == 'video' ? TRUE : FALSE;
 
   if ($gallery_node->getValue('media_gallery_allow_download') == TRUE) {
-    $download_link = theme('media_gallery_download_link', array('file' => $media_entity));
+    $download_link = $element['#bundle'] == 'video' ? l(t('View detail page'), $link_vars['link_path']) : theme('media_gallery_download_link', array('file' => $media_entity));
   }
+
   else {
     // Very ugly fix: This prevents the license info from being either hidden
     // or causing scrollbars (depending on the browser) in cases where a
@@ -192,20 +211,20 @@ function theme_media_gallery_media_item_lightbox($variables) {
       theme('media_gallery_item', $link_vars) .
       '<div class="media-gallery-detail-info">' .
       $download_link .
-      theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array(), 'color' => 'medium')) .
+      theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array(), 'color' => 'medium', 'media' => $media_entity)) .
       '</div></div>';
   // The license info has been themed already, keep it from being rendered as a child
   $element['field_license']['#access'] = FALSE;
 
   $output = 'Error';
   // If the format is to have the description as well, we add it here
-  if ($gallery_node->media_gallery_format[LANGUAGE_NONE][0]['value'] === 'lightbox_text') {
+  if ($gallery_node->media_gallery_lightbox_extras[LANGUAGE_NONE][0]['value']) {
     $output =
     '<div class="mg-lightbox-wrapper clearfix">' .
       '<div class="lightbox-title">' . drupal_render($element['media_title']) . '</div>' .
       '<div class="mg-lightbox-detail">' .
       $media_gallery_detail .
-      '</div><div class="no-overflow">' .
+      '</div><div class="mg-lightbox-description">' .
         drupal_render_children($element) .
       '</div>' .
     '</div>';
@@ -262,7 +281,7 @@ function theme_media_gallery_media_item_detail($variables) {
   }
 
   if ($gallery_node->getValue('media_gallery_allow_download') == TRUE) {
-    $download_link = theme('media_gallery_download_link', array('file' => $media_entity));
+    $download_link = $element['#bundle'] == 'video' ? '&nbsp;' : theme('media_gallery_download_link', array('file' => $media_entity));
   }
   else {
     // Very ugly fix: This prevents the license info from being either hidden
@@ -281,7 +300,7 @@ function theme_media_gallery_media_item_detail($variables) {
     '<div class="media-gallery-detail">' .
       drupal_render($element['file']) .
       '<div class="media-gallery-detail-info">' . $download_link .
-        theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array('#view_mode' => 'media_gallery_detail'), 'color' => 'dark')) .
+        theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array('#view_mode' => 'media_gallery_detail'), 'color' => 'dark', 'media' => $media_entity)) .
       '</div>' .
       '<div class="media-gallery-detail-info">' .
         '<span class="media-gallery-back-link">' .
@@ -289,7 +308,7 @@ function theme_media_gallery_media_item_detail($variables) {
         '</span>' .
         '<span class="media-gallery-detail-image-info-wrapper">' .
           '<span class="media-gallery-image-count">' .
-            t("Image %current of %total", array('%current' => $i_current + 1, '%total' => $num_items)) .
+            t("Item %current of %total", array('%current' => $i_current + 1, '%total' => $num_items)) .
           '</span>' .
           '<span class="media-gallery-controls">' .
             $previous_link .
@@ -318,12 +337,20 @@ function theme_media_gallery_media_item_detail($variables) {
 function theme_media_gallery_block_thumbnail($variables) {
   $element = $variables['element'];
 
+  // Attach the colorbox javascript if the format calls for it.
+  $format = $element['#media_gallery_entity']->media_gallery_format[LANGUAGE_NONE][0]['value'];
+  $lightbox = is_numeric(strpos($format, 'lightbox')) ? TRUE : FALSE;
+  if ($lightbox) {
+    $element['file']['#attached']['js'][] = drupal_get_path('module', 'media_gallery') . '/colorbox-display.js';
+    $element['file']['#attached']['library'][] = array('media_gallery', 'colorbox');
+  }
+
   // Get the rendered file without annoying DIV wrappers.
   $element['file']['#theme'] = 'media_gallery_file_field_inline';
   $image = drupal_render($element['file']);
 
   // Create some variables to be added to the main image link
-  $classes = array('media-gallery-thumb');
+  $classes = $lightbox ? array('media-gallery-thumb', 'cbEnabled') : array('media-gallery-thumb');
   $gallery_id = $element['#media_gallery_entity']->nid;
   $media_id = $element['#media_gallery_media_entity']->fid;
   $link_path = "media-gallery/detail/$gallery_id/$media_id";
@@ -375,21 +402,23 @@ function theme_media_gallery_item($variables) {
   $attributes = array();
   if (!empty($variables['classes'])) {
     $attributes['class'] = $variables['classes'];
-    $attributes['class'][] = 'cbEnabled';
   }
   if (!empty($variables['title'])) {
     // I'm fairly sure I don't like this solution.  But as Alex mentions in
     // theme_media_gallery_file_field_inline() the File Styles module isn't allowing
     // us access to the render array pre-rendering, so I'm doing a str_replace()
-    // here specifically to address the title and alt for thumbnails.
-    $new_image = str_replace(array('title=""', 'alt=""'), array('title="'.$variables['title'].'"', 'alt="'.$variables['title'].'"'), $image);
-    $image = $new_image;
+    // here specifically to address the title and alt for thumbnails.  This had
+    // to be further modified to remove and then add the title and alt attributes
+    // video thumbnails had no title and alt attributes so the string replace was
+    // not triggering for them.
+    $new_image = str_replace(array('title=""', 'alt=""'), array('', ''), $image);
+    $image = str_replace('/>', ' title="'.$variables['title'].'" alt="'.$variables['title'].'" />', $new_image);;
   }
 
   // Add sliding door top div and wrappers
   $item = '<div class="media-gallery-item"><div class="top"><div class="top-inset-1"><div class="top-inset-2"></div></div></div><div class="gallery-thumb-outer"><div class="gallery-thumb-inner">';
   // Create a link around the image
-  $item .= l($image, $link_path, array('html' => TRUE, 'attributes' => $attributes));
+  $item .= empty($variables['no_link']) ? l($image, $link_path, array('html' => TRUE, 'attributes' => $attributes)) : $image;
   // Add sliding door bottom div and close wrappers
   $item .= '</div></div><div class="bottom"><div class="bottom-inset-1"><div class="bottom-inset-2"></div></div></div></div>';
   return $item;
@@ -406,35 +435,38 @@ function theme_media_gallery_item($variables) {
  *   The title to display (if applicable)
  * @param string $license
  *   The license information for the media item
- *
+ * @param string $description
+ *   A description to display with the title (if applicable).
  */
 function theme_media_gallery_meta($variables) {
-  $display = $variables['display'];
   $location = $variables['location'];
   $title = $variables['title'];
-  $license = $variables['license'];
-  $num = $variables['num'];
+  $description = $variables['description'];
   $link_path = $variables['link_path'];
-  $meta = '';
+  // Add a top sliding door to the meta info
+  $meta = '<span class="top slider"><span class="top-inner slider"></span></span>';
+
+  // Open the content sliding door for the meta info
+  $meta .= '<span class="meta-outer slider"><span class="meta-inner slider">';
 
   // If we display nothing, nothing else matters
-  if ($display != 'nothing') {
+  if ($location != 'nothing') {
     // Add a wrapper around the meta data
     #$meta .= '<div class="meta-wrapper ' . $location . '">';
     // Add title
     $attributes = array('class' => array('meta-wrapper', 'cbEnabled', $location));
-    if (is_numeric(strpos($display, 'title'))) {
-      $meta .= $title ? '<span class="media-title">' . $title . '</span>' : '';
+    $meta .= $title ? '<span class="media-title">' . $title . '</span>' : '';
+    if ($description) {
+      $meta .= '<span class="media-description">' . $description . '</span>';
     }
-    // Add the license information
-    if (is_numeric(strpos($display, 'license')) && isset($license)) {
-      $meta .= $license ? $license : '';
-    }
-    if (is_numeric(strpos($display, 'num')) && isset($num)) {
-      $meta .= '<span class="image-count">' . format_plural($num, '%num image', '%num images', array('%num' => $num)) . '</span>';
-    }
+    // Close the content sliding door
+    $meta .= '</span></span>';
+
+    // Add a bottom sliding door
+    $meta .= '<span class="bottom slider"><span class="bottom-inner slider"></span></span>';
+
     // Close the wrapper around the meta data
-    $meta_link = l($meta, $link_path, array('attributes' => $attributes, 'html' => TRUE));
+    $meta_link = $location == 'hover' ? l($meta, $link_path, array('attributes' => $attributes, 'html' => TRUE)) : '<span class="meta-wrapper">' . $meta . '</span>';
   }
 
   return $meta_link;
@@ -482,6 +514,16 @@ function theme_media_gallery_download_link($variables) {
  * Turns the license information into the Creative Commons images.
  */
 function theme_media_gallery_license($variables) {
+  // Don't display license information for externally hosted media. See
+  //   media_gallery_field_attach_form().
+  if (isset($variables['media'])) {
+    // @todo Implement a more generic determination for when a license applies
+    //   and when it doesn't.
+    if (file_uri_scheme($variables['media']->uri) == 'youtube') {
+      return '';
+    }
+  }
+
   if (isset($variables['element']['#items'][0]['value'])) {
     $item = $variables['element']['#items'][0]['value'];
   }

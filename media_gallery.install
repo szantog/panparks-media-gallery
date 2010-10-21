@@ -23,43 +23,46 @@ function media_gallery_install() {
   // Enable the gallery block and full view modes.
   $bundle_settings['view_modes']['media_gallery_block']['custom_settings'] = TRUE;
   $bundle_settings['view_modes']['full']['custom_settings'] = TRUE;
-  // Adjust the "Add image link" extra field so that it only displays on the
+  // Adjust the "Add media link" extra field so that it only displays on the
   // full node view, with the correct weight relative to the other fields. In
   // particular, we put it directly after the 'media_gallery_description'
   // field; see _media_gallery_controlled_instances().
-  $bundle_settings['extra_fields']['display']['add_images_link']['full']['weight'] = 1;
-  $bundle_settings['extra_fields']['display']['add_images_link']['full']['visible'] = TRUE;
-  $bundle_settings['extra_fields']['display']['add_images_link']['default']['visible'] = FALSE;
-  $bundle_settings['extra_fields']['display']['add_images_link']['teaser']['visible'] = FALSE;
-  $bundle_settings['extra_fields']['display']['add_images_link']['media_gallery_block']['visible'] = FALSE;
+  $bundle_settings['extra_fields']['display']['add_media_link']['full']['weight'] = 1;
+  $bundle_settings['extra_fields']['display']['add_media_link']['full']['visible'] = TRUE;
+  $bundle_settings['extra_fields']['display']['add_media_link']['default']['visible'] = FALSE;
+  $bundle_settings['extra_fields']['display']['add_media_link']['teaser']['visible'] = FALSE;
+  $bundle_settings['extra_fields']['display']['add_media_link']['media_gallery_block']['visible'] = FALSE;
   
   // If we don't do this, it will throw E_NOTICE errors during install.
   // Don't ask me why I don't care anymore.
-  foreach ($bundle_settings['extra_fields']['display']['add_images_link'] as $name => $view_mode) {
-    $bundle_settings['extra_fields']['display']['add_images_link'][$name]['weight'] = 1;
+  foreach ($bundle_settings['extra_fields']['display']['add_media_link'] as $name => $view_mode) {
+    $bundle_settings['extra_fields']['display']['add_media_link'][$name]['weight'] = 1;
   }
   
   // Save the new bundle settings.
   field_bundle_settings('node', 'media_gallery', $bundle_settings);
 
   // Set the "Gallery Thumbnail", "Gallery Lightbox", and "Gallery Detail" view
-  // modes to be enabled for image bundles and default the image bundle's file
-  // field display appropriately. Do this before creating new field instances in
-  // media entity bundles.
-  $bundle_settings = field_bundle_settings('media', 'image');
-  $bundle_settings['view_modes']['media_gallery_thumbnail']['custom_settings'] = TRUE;
-  $bundle_settings['view_modes']['media_gallery_lightbox']['custom_settings'] = TRUE;
-  $bundle_settings['view_modes']['media_gallery_detail']['custom_settings'] = TRUE;
-  $bundle_settings['view_modes']['media_gallery_block_thumbnail']['custom_settings'] = TRUE;
-  $bundle_settings['view_modes']['media_gallery_collection_thumbnail']['custom_settings'] = TRUE;
-  field_bundle_settings('media', 'image', $bundle_settings);
-  $instance = field_info_instance('media', 'file', 'image');
-  $instance['display']['media_gallery_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
-  $instance['display']['media_gallery_lightbox'] = array('type' => 'styles_file_large', 'label' => 'hidden');
-  $instance['display']['media_gallery_detail'] = array('type' => 'styles_file_large', 'label' => 'hidden');
-  $instance['display']['media_gallery_block_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
-  $instance['display']['media_gallery_collection_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
-  field_update_instance($instance);
+  // modes to be enabled for image and video bundles and default those bundle's
+  // file field display appropriately. Do this before creating new field
+  // instances in media entity bundles.
+  // @todo Add a hook_update() function for 'video'.
+  foreach (array('image', 'video') as $bundle) {
+    $bundle_settings = field_bundle_settings('media', $bundle);
+    $bundle_settings['view_modes']['media_gallery_thumbnail']['custom_settings'] = TRUE;
+    $bundle_settings['view_modes']['media_gallery_lightbox']['custom_settings'] = TRUE;
+    $bundle_settings['view_modes']['media_gallery_detail']['custom_settings'] = TRUE;
+    $bundle_settings['view_modes']['media_gallery_block_thumbnail']['custom_settings'] = TRUE;
+    $bundle_settings['view_modes']['media_gallery_collection_thumbnail']['custom_settings'] = TRUE;
+    field_bundle_settings('media', $bundle, $bundle_settings);
+    $instance = field_info_instance('media', 'file', $bundle);
+    $instance['display']['media_gallery_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
+    $instance['display']['media_gallery_lightbox'] = array('type' => 'styles_file_media_gallery_large', 'label' => 'hidden');
+    $instance['display']['media_gallery_detail'] = array('type' => 'styles_file_media_gallery_large', 'label' => 'hidden');
+    $instance['display']['media_gallery_block_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
+    $instance['display']['media_gallery_collection_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
+    field_update_instance($instance);
+  }
 
   // Clear caches so that our implementation of hook_image_default_styles() is
   // correctly used when all the fields created below need it to be.
@@ -192,6 +195,16 @@ function _media_gallery_controlled_fields() {
         'allowed_values_function' => '_media_gallery_get_format_values',
       ),
     ),
+    // Whether or not the lightbox should show extra fields.
+    'media_gallery_lightbox_extras' => array(
+      'field_name' => 'media_gallery_lightbox_extras',
+      'cardinality' => 1,
+      'locked' => TRUE,
+      'type' => 'list_boolean',
+      'settings' => array(
+        'allowed_values_function' => '_media_gallery_get_lightbox_extras_values',
+      ),
+    ),
     // How many columns of thumbnails to show.
     'media_gallery_columns' => array(
       'field_name' => 'media_gallery_columns',
@@ -217,16 +230,6 @@ function _media_gallery_controlled_fields() {
       'type' => 'list_text',
       'settings' => array(
         'allowed_values_function' => '_media_gallery_get_image_info_placement_values',
-      ),
-    ),
-    // What combination of title, and license to show with thumbnails.
-    'media_gallery_image_info' => array(
-      'field_name' => 'media_gallery_image_info',
-      'cardinality' => 1,
-      'locked' => TRUE,
-      'type' => 'list_text',
-      'settings' => array(
-        'allowed_values_function' => '_media_gallery_get_image_info_values',
       ),
     ),
     // Whether to show a "Download original image" checkbox.
@@ -269,24 +272,13 @@ function _media_gallery_controlled_fields() {
     'media_gallery_collection' => array(
       'field_name' => 'media_gallery_collection',
       'type' => 'taxonomy_term_reference',
-      // Set cardinality to unlimited for tagging.
       'settings' => array(
         'allowed_values' => array(
           array(
-            'vid' => variable_get('media_gallery_collection_vid'),
+            'vocabulary' => 'gallery_collections',
             'parent' => 0,
           ),
         ),
-      ),
-    ),
-    // What combination of title and number of items to show with Galleries.
-    'media_gallery_gallery_info' => array(
-      'field_name' => 'media_gallery_gallery_info',
-      'cardinality' => 1,
-      'locked' => TRUE,
-      'type' => 'list_text',
-      'settings' => array(
-        'allowed_values_function' => '_media_gallery_get_gallery_info_values',
       ),
     ),
     // Fields to create on media items.
@@ -364,12 +356,12 @@ function _media_gallery_controlled_instances($group = NULL) {
     ),
     'media_gallery_media' => array(
       'field_name' => 'media_gallery_media',
-      'label' => $t('Gallery images'),
+      'label' => $t('Gallery media'),
       'widget' => array(
         'type' => 'media_generic',
         'settings' => array(
           // Eventually other media types will be allowed.
-          'allowed_types' => array('image' => 'image'),
+          'allowed_types' => array('image' => 'image', 'video' => 'video'),
           'allowed_schemes' => array('public' => 'public'),
         ),
       ),
@@ -422,6 +414,34 @@ function _media_gallery_controlled_instances($group = NULL) {
       ),
       'widget' => array(
         'type' => 'options_buttons',
+      ),
+    ),
+    // Whether to show a "Exclude title and description" checkbox.
+    'media_gallery_lightbox_extras' => array(
+      'field_name' => 'media_gallery_lightbox_extras',
+      'label' => 'Lightbox title and description',
+      'description' => $t('Show title and description'),
+      'default_value' => array(array('value' => 0)),
+      'widget' => array(
+        'type' => 'options_onoff',
+      ),
+      'display' => array(
+        'default' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+        'full' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+        'teaser' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+        'media_gallery_block' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
       ),
     ),
     // How many columns to show.
@@ -486,37 +506,12 @@ function _media_gallery_controlled_instances($group = NULL) {
     // Whether to show title/license on hover or below thumbnail.
     'media_gallery_image_info_where' => array(
       'field_name' => 'media_gallery_image_info_where',
-      'label' => $t('Image information'),
+      'label' => $t('Media information'),
       'required' => TRUE,
       'default_value' => array(array('value' => 'hover')),
       'widget' => array(
         'type' => 'options_select',
       ),
-      'display' => array(
-        'default' => array(
-          'type' => 'hidden',
-          'label' => 'hidden',
-        ),
-        'full' => array(
-          'type' => 'hidden',
-          'label' => 'hidden',
-        ),
-        'teaser' => array(
-          'type' => 'hidden',
-          'label' => 'hidden',
-        ),
-        'media_gallery_block' => array(
-          'type' => 'hidden',
-          'label' => 'hidden',
-        ),
-      ),
-    ),
-    // What combination of title and license to show with thumbnails.
-    'media_gallery_image_info' => array(
-      'field_name' => 'media_gallery_image_info',
-      'label' => $t('Image information displayed'),
-      'required' => TRUE,
-      'default_value' => array(array('value' => 'title')),
       'display' => array(
         'default' => array(
           'type' => 'hidden',
@@ -568,7 +563,7 @@ function _media_gallery_controlled_instances($group = NULL) {
     'media_gallery_expose_block' => array(
       'field_name' => 'media_gallery_expose_block',
       'label' => $t('Create a block of most recently added media'),
-      'default_value' => array(array('value' => 1)),
+      'default_value' => array(array('value' => 0)),
       'widget' => array(
         'type' => 'options_onoff',
       ),
@@ -686,26 +681,8 @@ function _media_gallery_controlled_instances($group = NULL) {
     'default_value' => array(
       array('value' => 'nothing'),
     ),
-    'description' => $t('Choose a default <a href="http://creativecommons.org">@cc_link</a> license for all Gallery media. Later you can change each image\'s license.', array('@cc_link' => 'Creative Commons')),
+    'description' => $t('Choose a default <a href="http://creativecommons.org">@cc_link</a> license for all Gallery media. Later you can change the license for each piece of media.', array('@cc_link' => 'Creative Commons')),
     'weight' => 14,
-    'display' => array(
-      'default' => array(
-        'type' => 'hidden',
-        'label' => 'hidden',
-      ),
-      'teaser' => array(
-        'type' => 'hidden',
-        'label' => 'hidden',
-      ),
-    ),
-  );
-  $instances['media_gallery_gallery_info'] = array(
-    'field_name' => 'media_gallery_gallery_info',
-    'label' => $t('Gallery information displayed'),
-    'required' => TRUE,
-    'default_value' => array(
-      array('value' => 'title_num'),
-    ),
     'display' => array(
       'default' => array(
         'type' => 'hidden',
@@ -747,7 +724,7 @@ function _media_gallery_controlled_instances($group = NULL) {
  *   The field definition.
  */
 function _media_gallery_ensure_field($field) {
-  $existing_field = field_info_field($field['field_name']);
+  $existing_field = field_read_field($field['field_name'], array('include_inactive' => TRUE));
   if (empty($existing_field)) {
     field_create_field($field);
   }
@@ -784,10 +761,10 @@ function _media_required_instances() {
         'settings' => array('rows' => 4),
       ),
       'display' => array(
-        'default' => array('type' => 'hidden'),
-        'media_gallery_thumbnail' => array('type' => 'text_default', 'label' => 'hidden'),
-        'media_gallery_lightbox' => array('type' => 'text_default', 'label' => 'hidden'),
-        'media_gallery_detail' => array('type' => 'text_default', 'label' => 'hidden'),
+        'default' => array('type' => 'text_default', 'label' => 'above'),
+        'media_gallery_thumbnail' => array('type' => 'text_default', 'label' => 'above'),
+        'media_gallery_lightbox' => array('type' => 'text_default', 'label' => 'above'),
+        'media_gallery_detail' => array('type' => 'text_default', 'label' => 'above'),
       ),
     ),
     'field_tags' => array(
@@ -802,12 +779,12 @@ function _media_required_instances() {
     ),
     'field_license' => array(
       'field_name' => 'field_license',
-      'label' => $t('License settings for this image'),
+      'label' => $t('License settings for this media'),
       'required' => TRUE,
       'default_value' => array(
         array('value' => 'nothing'),
       ),
-      'description' => $t('Select a <a href="http://creativecommons.org" target="_new">Creative Commons</a> license for others who use this image. Or change the <a href="@gallery_settings">default license</a> used for uploaded images.', array('@gallery_settings' => url('admin/config/media/galleries'))),
+      'description' => $t('Select a <a href="http://creativecommons.org" target="_new">Creative Commons</a> license for others who use this media.'),
       'display' => array(
         'default' => array('type' => 'hidden'),
         'media_gallery_thumbnail' => array('type' => 'list_default', 'label' => 'hidden'),
@@ -845,7 +822,7 @@ function _media_gallery_ensure_field_tags() {
     'settings' => array(
       'allowed_values' => array(
         array(
-          'vid' => $vocabulary->vid,
+          'vocabulary' => $vocabulary->machine_name,
           'parent' => 0,
         ),
       ),
@@ -867,9 +844,14 @@ function _media_gallery_ensure_media_instances() {
         'entity_type' => 'media',
         'bundle' => $bundle,
       );
+      // Friendlier label than "media".
+      $label = in_array($bundle, array('image', 'audio', 'video')) ? $bundle : 'file';
       if ($instance_copy['field_name'] == 'field_tags' && !isset($instance_copy['description'])) {
-        $label = in_array($bundle, array('image', 'audio', 'video')) ? $bundle : 'file';
         $instance_copy['description'] = $t("Enter a comma-separated list of words to describe your $label.");
+      }
+      if ($instance_copy['field_name'] == 'field_license') {
+        $instance_copy['label'] = $t("License settings for this $label");
+        $instance_copy['description'] = $t('Select a <a href="http://creativecommons.org" target="_new">Creative Commons</a> license for others who use this ' . $label . '.');
       }
       _media_gallery_ensure_instance($instance_copy);
     }
@@ -963,4 +945,260 @@ function media_gallery_uninstall() {
   variable_del('comment_media_gallery');
   variable_del('media_gallery_collection_vid');
   variable_del('media_gallery_default_collection_tid');
+}
+
+/**
+ * Set the default value of media_gallery_expose_block to zero
+ * In order to have the expose block checkbox appear above the column and row number dropdowns
+ * it was necessary to update those field instances with their initial values, essentially
+ * refreshing them.
+ */ 
+function media_gallery_update_7000() {
+  $t = get_t();
+
+  // Add a check to make sure the instance exists if we want to update it.
+  $instance = field_info_instance('node', 'media_gallery_expose_block', 'media_gallery');
+  if ($instance) {
+    $instance['default_value'] = array(array('value' => 0));
+    field_update_instance($instance);
+  }
+
+  // Update the media_display field so that it shows the label
+  foreach (array('video', 'image') as $bundle) {
+    field_update_instance( array(
+        'field_name' => 'media_description',
+        'bundle' => $bundle,
+        'entity_type' => 'media',
+        'display' => array(
+          'default' => array('type' => 'text_default', 'label' => 'above'),
+          'media_gallery_thumbnail' => array('type' => 'text_default', 'label' => 'above'),
+          'media_gallery_lightbox' => array('type' => 'text_default', 'label' => 'above'),
+          'media_gallery_detail' => array('type' => 'text_default', 'label' => 'above'),
+        ),
+      )
+    );
+  }
+
+  // Remove the media_gallery_gallery_info field
+  field_delete_field('media_gallery_gallery_info');
+  field_delete_field('media_gallery_image_info');
+
+  // Ensure that the new field exists
+  $extraField = array(
+    'field_name' => 'media_gallery_lightbox_extras',
+    'cardinality' => 1,
+    'locked' => TRUE,
+    'type' => 'list_boolean',
+    'settings' => array(
+      'allowed_values_function' => '_media_gallery_get_lightbox_extras_values',
+    ),
+  );
+  _media_gallery_ensure_field($extraField);
+
+  $newInstance = array(
+    'field_name' => 'media_gallery_lightbox_extras',
+    'label' => 'Lightbox title and description',
+    'description' => $t('Show title and description'),
+    'default_value' => array(array('value' => 0)),
+    'entity_type' => 'node',
+    'bundle' => 'media_gallery',
+    'widget' => array(
+      'type' => 'options_onoff',
+    ),
+    'display' => array(
+      'default' => array(
+        'type' => 'hidden',
+        'label' => 'hidden',
+      ),
+      'full' => array(
+        'type' => 'hidden',
+        'label' => 'hidden',
+      ),
+      'teaser' => array(
+        'type' => 'hidden',
+        'label' => 'hidden',
+      ),
+      'media_gallery_block' => array(
+        'type' => 'hidden',
+        'label' => 'hidden',
+      ),
+    ),
+  );
+  _media_gallery_ensure_instance($newInstance);
+}
+
+/**
+ * Updates all gallery nodes to use new default settings.
+ */
+function media_gallery_update_7001() {
+  $result = db_query("SELECT nid FROM {node} WHERE type = 'media_gallery'");
+  foreach($result as $record) {
+    $node = node_load($record->nid);
+    if ($node->media_gallery_format[LANGUAGE_NONE][0]['value'] == 'lightbox_text') {
+      $node->media_gallery_format[LANGUAGE_NONE][0]['value'] = 'lightbox';
+      $node->media_gallery_lightbox_extras[LANGUAGE_NONE][0]['value'] = 0;
+      node_save($node);
+    }
+  }
+}
+
+/**
+ * Configure video formatters to desired defaults for gallery view modes.
+ */
+function media_gallery_update_7002() {
+  drupal_load('module', 'field');
+  $bundle = 'video';
+  $bundle_settings = field_bundle_settings('media', $bundle);
+  $bundle_settings['view_modes']['media_gallery_thumbnail']['custom_settings'] = TRUE;
+  $bundle_settings['view_modes']['media_gallery_lightbox']['custom_settings'] = TRUE;
+  $bundle_settings['view_modes']['media_gallery_detail']['custom_settings'] = TRUE;
+  $bundle_settings['view_modes']['media_gallery_block_thumbnail']['custom_settings'] = TRUE;
+  $bundle_settings['view_modes']['media_gallery_collection_thumbnail']['custom_settings'] = TRUE;
+  field_bundle_settings('media', $bundle, $bundle_settings);
+  $instance = field_info_instance('media', 'file', $bundle);
+  $instance['display']['media_gallery_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
+  $instance['display']['media_gallery_lightbox'] = array('type' => 'styles_file_media_gallery_large', 'label' => 'hidden');
+  $instance['display']['media_gallery_detail'] = array('type' => 'styles_file_media_gallery_large', 'label' => 'hidden');
+  $instance['display']['media_gallery_block_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
+  $instance['display']['media_gallery_collection_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
+  field_update_instance($instance);
+}
+
+/**
+ * Configure gallery nodes to allow video as well as image media.
+ */
+function media_gallery_update_7003() {
+  drupal_load('module', 'field');
+  $instance = field_info_instance('node', 'media_gallery_media', 'media_gallery');
+  // If the instance doesn't exist, we can't update it.
+  if ($instance) {
+    $instance['widget']['settings']['allowed_types'] = array('image' => 'image', 'video' => 'video');
+    field_update_instance($instance);
+  }
+}
+
+/**
+ * Configure media license field to have a per-type label and description.
+ */
+function media_gallery_update_7004() {
+  drupal_load('module', 'field');
+  drupal_load('module', 'media');
+  $t = get_t();
+  foreach (media_type_get_types() as $bundle => $type) {
+    $instance = field_info_instance('media', 'field_license', $bundle);
+    // If the instance doesn't exist, we can't update it.
+    if ($instance) {
+      $label = in_array($bundle, array('image', 'audio', 'video')) ? $bundle : 'file';
+      $instance['label'] = $t("License settings for this $label");
+      $instance['description'] = $t('Select a <a href="http://creativecommons.org" target="_new">Creative Commons</a> license for others who use this ' . $label . '.');
+      field_update_instance($instance);
+    }
+  }
+}
+
+/**
+ * There was an odd case where galleries created previous to youtube support
+ * lost some display settings on update.  This update fixes those display settings.
+ */
+
+function media_gallery_update_7005() {
+
+  // Ensure that the media_description field has the proper label
+  foreach (array('video', 'image') as $bundle) {
+    $instance = field_info_instance('media', 'media_description', $bundle);
+    if ($instance) {
+      $instance['label'] = t('Description');
+      field_update_instance($instance);
+    }
+  }
+
+  // Ensure that media videos have the proper display formatters
+  $instance = field_info_instance('media', 'file', 'video');
+  if ($instance) {
+    $instance['display']['media_gallery_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
+    $instance['display']['media_gallery_lightbox'] = array('type' => 'styles_file_media_gallery_large', 'label' => 'hidden');
+    $instance['display']['media_gallery_detail'] = array('type' => 'styles_file_media_gallery_large', 'label' => 'hidden');
+    $instance['display']['media_gallery_block_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
+    $instance['display']['media_gallery_collection_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
+    field_update_instance($instance);
+  }
+
+  // Remove the old add_images_link extra field if it still exists
+  $bundle_settings = field_bundle_settings('node', 'media_gallery');
+  unset($bundle_settings['extra_fields']['display']['add_images_link']);
+  $bundle_settings['extra_fields']['display']['add_media_link']['full']['weight'] = 1;
+  $bundle_settings['extra_fields']['display']['add_media_link']['full']['visible'] = TRUE;
+  $bundle_settings['extra_fields']['display']['add_media_link']['default']['visible'] = FALSE;
+  $bundle_settings['extra_fields']['display']['add_media_link']['teaser']['visible'] = FALSE;
+  $bundle_settings['extra_fields']['display']['add_media_link']['media_gallery_block']['visible'] = FALSE;
+  field_bundle_settings('node', 'media_gallery', $bundle_settings);
+}
+
+/**
+ * Make sure the gallery node form includes the media_gallery_lightbox_extras
+ * checkbox.
+ */
+function media_gallery_update_7006() {
+
+    // Whether to show a "Exclude title and description" checkbox.
+    $field = array(
+      'field_name' => 'media_gallery_lightbox_extras',
+      'label' => 'Lightbox title and description',
+      'description' => 'Show title and description',
+      'default_value' => array(array('value' => 0)),
+      'widget' => array(
+        'type' => 'options_onoff',
+      ),
+      'display' => array(
+        'default' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+        'full' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+        'teaser' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+        'media_gallery_block' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+      ),
+    );
+
+    $instance = array(
+      'field_name' => 'media_gallery_lightbox_extras',
+      'label' => 'Lightbox title and description',
+      'description' => 'Show title and description',
+      'default_value' => array(array('value' => 0)),
+      'entity_type' => 'node',
+      'bundle' => 'media_gallery',
+      'widget' => array(
+        'type' => 'options_onoff',
+      ),
+      'display' => array(
+        'default' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+        'full' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+        'teaser' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+        'media_gallery_block' => array(
+          'type' => 'hidden',
+          'label' => 'hidden',
+        ),
+      ),
+    );
+    _media_gallery_ensure_field($field);
+    _media_gallery_ensure_instance($instance);
+
 }

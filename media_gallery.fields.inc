@@ -214,9 +214,18 @@ function _media_gallery_get_media_title($media_entity) {
  */
 function _media_gallery_get_format_values() {
   return array(
-    'lightbox' => '<span class="l-icon setting-icon"></span>' . t('Show images in lightbox format') . '<span class="description">'. t('Lightbox links to full page') . '</span>',
-    'lightbox_text' => '<span class="lt-icon setting-icon"></span>' . t('Show images in lightbox format with titles and description') . '<span class="description">'. t('Lightbox links to full page') . '</span>',
-    'node' => '<span class="n-icon setting-icon"></span>' . t('Show images on a full page'),
+    'node' => t('Show media on a full page'),
+    'lightbox' => t('Show media in a lightbox'),
+  );
+}
+
+/**
+ * Allowed values callback for media_gallery_lightbox_extras list field.
+ */
+function _media_gallery_get_lightbox_extras_values() {
+  return array(
+    0 => t('Do not show title and description'),
+    1 => t('Show title and description'),
   );
 }
 
@@ -236,8 +245,9 @@ function _media_gallery_get_image_info_values() {
  */
 function _media_gallery_get_image_info_placement_values() {
   return array(
-    'hover' => t('On image hover show:'),
-    'below' => t('Below image show:'),
+    'hover' => t('Show title on hover'),
+    'below' => t('Show title below'),
+    'nothing' => t('Show nothing'),
   );
 }
 
@@ -268,7 +278,7 @@ function _media_gallery_get_gallery_info_values() {
   return array(
     'nothing' => t('Nothing'),
     'title' => t('Title'),
-    'title_num' => t('Title and number of images in the gallery'),
+    'title_num' => t('Title and number of media in the gallery'),
   );
 }
 
@@ -294,7 +304,7 @@ function _media_gallery_get_field_license_values() {
  * Allowed values callback for media_gallery_columns list field.
  */
 function _media_gallery_get_columns_values() {
-  return drupal_map_assoc(array(3, 4, 5, 6, 7, 8, 9, 10));
+  return drupal_map_assoc(array(2, 3, 4, 5, 6, 7, 8, 9, 10));
 }
 
 /**
