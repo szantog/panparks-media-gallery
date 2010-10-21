@@ -57,6 +57,9 @@ function media_gallery_field_formatter_view($entity_type, $entity, $field, $inst
       }
     }
   }
+  if (!$items) {
+    return $element;
+  }
 
   // Each item is a fully loaded media entity, thanks to
   // media_field_prepare_view(), but $items is keyed by delta rather than by

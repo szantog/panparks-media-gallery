@@ -42,6 +42,9 @@ class FieldsRSIPreventor {
   }
   
   function getAllItems($field_name, $language = LANGUAGE_NONE) {
+    if (isset($this->entity->{$field_name}) && !isset($this->entity->{$field_name}[$language])) {
+      return array();
+    }
     return $this->entity->{$field_name}[$language];
   }
   

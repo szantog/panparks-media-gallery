@@ -267,7 +267,13 @@ function media_gallery_view($node, $view_mode) {
   // For the full display, implement pagination.
   elseif ($view_mode == 'full' || $view_mode == 'media_gallery_block') {
     $full = $view_mode == 'full' ? TRUE : FALSE;
-    $media = $full ? $node->media_gallery_media[LANGUAGE_NONE] : $node->media_gallery_media_original[LANGUAGE_NONE];
+    if (!empty($node->media_gallery_media)) {
+      $media = $full ? $node->media_gallery_media[LANGUAGE_NONE] : $node->media_gallery_media_original[LANGUAGE_NONE];  
+    }
+    else {
+      $media = array();
+    }
+    
     // Only display the requested number of media items per page.
     $columns = $full ? $node->media_gallery_columns[LANGUAGE_NONE][0]['value'] : $node->media_gallery_block_columns[LANGUAGE_NONE][0]['value'];
     $rows = $full ? $node->media_gallery_rows[LANGUAGE_NONE][0]['value'] : $node->media_gallery_block_rows[LANGUAGE_NONE][0]['value'];
@@ -306,7 +312,13 @@ function media_gallery_view($node, $view_mode) {
 
     // Field rendering requires sequential deltas, so re-key.
     // @todo Open a Drupal core issue about this.
-    $node->media_gallery_media[LANGUAGE_NONE] = array_values($media);
+    
+    if ($media) {
+      $node->media_gallery_media[LANGUAGE_NONE] = array_values($media);
+    }
+    else {
+      $node->media_gallery_media[LANGUAGE_NONE] = array();  
+    }
 
     // Create a set of dummy links to media items that don't appear on this
     // page, so colorbox can link to them in the slideshow.
@@ -838,7 +850,6 @@ function media_gallery_form_media_gallery_node_form_alter(&$form, &$form_state) 
     'media_gallery_columns' => 'gallery',
     'media_gallery_rows' => 'gallery',
     'media_gallery_image_info_where' => 'gallery',
-    'media_gallery_image_info' => 'gallery',
     'media_gallery_allow_download' => 'presentation',
     'media_gallery_format' => 'presentation',
     'media_gallery_lightbox_extras' => 'presentation',
@@ -993,11 +1004,13 @@ function media_gallery_node_view_alter(&$build) {
   }
   // This is for when a gallery is being shown on its own, single gallery page.
   elseif ($build['#bundle'] == 'media_gallery' && $build['#view_mode'] == 'full') {
-    foreach (element_children($build['media_gallery_media']) as $delta) {
-      // For each media item, add contextual links to the in-gallery-context
-      // tasks that can be performed on a media item.
-      $fid = $build['media_gallery_media'][$delta]['#media_gallery_media_entity']->fid;
-      $build['media_gallery_media'][$delta]['#contextual_links']['media_gallery'] = array('media-gallery/detail', array($build['#node']->nid, $fid));
+    if (!empty($build['media_gallery_media'])) {
+      foreach (element_children($build['media_gallery_media']) as $delta) {
+        // For each media item, add contextual links to the in-gallery-context
+        // tasks that can be performed on a media item.
+        $fid = $build['media_gallery_media'][$delta]['#media_gallery_media_entity']->fid;
+        $build['media_gallery_media'][$delta]['#contextual_links']['media_gallery'] = array('media-gallery/detail', array($build['#node']->nid, $fid));
+      }
     }
     _media_gallery_attach_css_resources($build);
   }
