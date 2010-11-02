@@ -296,7 +296,7 @@ function media_gallery_view($node, $view_mode) {
         $pre_links[$key] = array(
           'title' => '',
           'href' => 'media-gallery/detail/' . $node->nid . '/' . $fid,
-          'attributes' => array('class' => 'colorbox-supplemental-link pre'),
+          'attributes' => array('class' => array('colorbox-supplemental-link pre')),
         );
         unset($media[$delta]);
       }
@@ -304,7 +304,7 @@ function media_gallery_view($node, $view_mode) {
         $post_links[$key] = array(
           'title' => '',
           'href' => 'media-gallery/detail/' . $node->nid . '/' . $fid,
-          'attributes' => array('class' => 'colorbox-supplemental-link post'),
+          'attributes' => array('class' => array('colorbox-supplemental-link post')),
         );
         unset($media[$delta]);
       }
