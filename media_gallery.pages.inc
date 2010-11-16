@@ -48,12 +48,9 @@ function media_gallery_list_galleries($term) {
   if (!$limit) {
     $limit = 10;
   }
-  
-  $term_entity->getValue('media_gallery_image_info_where');
-  $term_entity->getValue('media_gallery_gallery_info');
-  
+
   $nids = media_gallery_select_galleries($term->tid, TRUE, $limit);
-  
+
   if (!empty($nids)) {
     $nodes = node_load_multiple($nids);
     // Add the nodes to the build array, with a weight of 5.

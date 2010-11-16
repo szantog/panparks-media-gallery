@@ -1172,7 +1172,6 @@ function media_gallery_form_taxonomy_form_term_alter(&$form, &$form_state) {
     'media_gallery_columns' => 'gallery',
     'media_gallery_rows' => 'gallery',
     'media_gallery_image_info_where' => 'gallery',
-    'media_gallery_gallery_info' => 'gallery',
   );
 
   // Move the items to the fieldset.
