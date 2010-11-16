@@ -1,7 +1,7 @@
 name = Media Gallery
 description = A flexible gallery of media.
 core = 7.x
-package = media
+package = Media
 
 dependencies[] = media
 dependencies[] = taxonomy
