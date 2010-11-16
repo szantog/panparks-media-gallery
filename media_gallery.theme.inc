@@ -68,7 +68,7 @@ function theme_media_gallery_teaser($variables) {
   $output = '<div class="media-collection-item-wrapper"><img class="stack-image" src="' . base_path() . drupal_get_path('module', 'media_gallery') . '/images/stack_bg.png" />' . theme('media_gallery_item', $link_vars);
 
   // Set the variables to theme the meta data if there is a term on the node
-  if ($node->term) {
+  if (isset($node->term)) {
     $term = $node->term;
     $meta_vars = array();
     $meta_vars['location'] = $term->media_gallery_image_info_where[LANGUAGE_NONE][0]['value'];
