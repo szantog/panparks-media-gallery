@@ -210,7 +210,7 @@ function _media_gallery_controlled_fields() {
       'field_name' => 'media_gallery_columns',
       'cardinality' => 1,
       'locked' => TRUE,
-      'type' => 'list_number',
+      'type' => 'list_float',
       'settings' => array(
         'allowed_values_function' => '_media_gallery_get_columns_values',
       ),
@@ -257,7 +257,7 @@ function _media_gallery_controlled_fields() {
       'field_name' => 'media_gallery_block_columns',
       'cardinality' => 1,
       'locked' => TRUE,
-      'type' => 'list_number',
+      'type' => 'list_float',
       'settings' => array(
         'allowed_values_function' => '_media_gallery_get_block_columns_values',
       ),
