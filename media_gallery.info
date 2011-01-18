@@ -3,6 +3,8 @@ description = A flexible gallery of media.
 core = 7.x
 package = Media
 
+dependencies[] = list
+dependencies[] = number
 dependencies[] = media
 dependencies[] = taxonomy
 dependencies[] = multiform
