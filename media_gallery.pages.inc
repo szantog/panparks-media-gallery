@@ -104,7 +104,7 @@ function media_gallery_lightbox_page($gallery_node, $media_entity) {
   // generated yet, we have to create it beforehand so we can determine its
   // width and height.
   $instance = field_info_instance('media', 'file', 'image');
-  $display = field_get_display($instance, 'media_gallery_lightbox');
+  $display = field_get_display($instance, 'media_gallery_lightbox', $media_entity);
   if (preg_match('@^styles_(.*?)_(.*?)$@i', $display['type'], $matches)) {
     $style_name = $matches[2];
     // Check if the media file already exists at its final path; if not, create

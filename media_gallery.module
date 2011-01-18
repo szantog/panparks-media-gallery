@@ -780,7 +780,7 @@ function media_gallery_entity_info_alter(&$info) {
   // corresponding media entity view mode.
   foreach (media_gallery_field_formatter_info() as $formatter_name => $formatter_info) {
     if (in_array('media', $formatter_info['field types'])) {
-      $info['media']['view modes'][$formatter_name] = array('label' => $formatter_info['label']);
+      $info['media']['view modes'][$formatter_name] = array('label' => $formatter_info['label'], 'custom settings' => FALSE);
     }
   }
   // Add a view mode for displaying a node in a media gallery block.
