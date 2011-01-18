@@ -331,11 +331,13 @@ function media_gallery_view($node, $view_mode) {
       '#theme' => 'links',
       '#links' => $pre_links,
       '#weight' => -20,
+      '#attributes' => array('class' => array('colorbox-supplemental-links')),
     );
     $node->content['colorbox_links_post'] = array(
       '#theme' => 'links',
       '#links' => $post_links,
       '#weight' => 20,
+      '#attributes' => array('class' => array('colorbox-supplemental-links')),
     );
     // Finally, display the pager, with a high weight so it appears at the
     // bottom.
