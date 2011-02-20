@@ -358,7 +358,7 @@ function media_gallery_view($node, $view_mode) {
 function media_gallery_add_images_link_pre_render($elements) {
   drupal_add_library('media', 'media_browser');
   module_load_include('inc', 'media', 'media.browser');
-  media_include_browser_js();
+  media_attach_browser_js($elements);
   drupal_add_js(drupal_get_path('module', 'media_gallery') . '/media_gallery.addimage.js');
   return $elements;
 }
