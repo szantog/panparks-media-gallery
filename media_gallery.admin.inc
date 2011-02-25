@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * The Galleries settings page will just return the term edit form for the "all galleries" tid.

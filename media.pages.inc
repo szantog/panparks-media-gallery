@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * @todo Move this code to the Media module's media.pages.inc file when it is
