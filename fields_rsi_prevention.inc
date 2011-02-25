@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Decorates an entity to provide getters/setters.
