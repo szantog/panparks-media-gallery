@@ -275,17 +275,6 @@ function _media_gallery_get_expose_block_values() {
 }
 
 /**
- * Allowed values callback for media_gallery_gallery_info list field.
- */
-function _media_gallery_get_gallery_info_values() {
-  return array(
-    'nothing' => t('Nothing'),
-    'title' => t('Title'),
-    'title_num' => t('Title and number of media in the gallery'),
-  );
-}
-
-/**
  * Allowed values callback for field_license list field.
  * 
  * @todo: should be moved to media_cc module or something.

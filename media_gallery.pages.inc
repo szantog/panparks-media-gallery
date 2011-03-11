@@ -48,12 +48,9 @@ function media_gallery_list_galleries($term) {
   if (!$limit) {
     $limit = 10;
   }
-  
-  $term_entity->getValue('media_gallery_image_info_where');
-  $term_entity->getValue('media_gallery_gallery_info');
-  
+
   $nids = media_gallery_select_galleries($term->tid, TRUE, $limit);
-  
+
   if (!empty($nids)) {
     $nodes = node_load_multiple($nids);
     // Add the nodes to the build array, with a weight of 5.
@@ -107,7 +104,7 @@ function media_gallery_lightbox_page($gallery_node, $media_entity) {
   // generated yet, we have to create it beforehand so we can determine its
   // width and height.
   $instance = field_info_instance('media', 'file', 'image');
-  $display = field_get_display($instance, 'media_gallery_lightbox');
+  $display = field_get_display($instance, 'media_gallery_lightbox', $media_entity);
   if (preg_match('@^styles_(.*?)_(.*?)$@i', $display['type'], $matches)) {
     $style_name = $matches[2];
     // Check if the media file already exists at its final path; if not, create

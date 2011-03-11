@@ -592,6 +592,14 @@ a.media-gallery-thumb img,
 
 /* @end */
 
+/* @group Gallery node styles */
+
+.colorbox-supplemental-links {
+  display: none;
+}
+
+/* @end */
+
 /* @group Overrides */
 
 a.contextual-links-trigger {

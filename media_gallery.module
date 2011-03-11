@@ -296,7 +296,7 @@ function media_gallery_view($node, $view_mode) {
         $pre_links[$key] = array(
           'title' => '',
           'href' => 'media-gallery/detail/' . $node->nid . '/' . $fid,
-          'attributes' => array('class' => 'colorbox-supplemental-link pre'),
+          'attributes' => array('class' => array('colorbox-supplemental-link pre')),
         );
         unset($media[$delta]);
       }
@@ -304,7 +304,7 @@ function media_gallery_view($node, $view_mode) {
         $post_links[$key] = array(
           'title' => '',
           'href' => 'media-gallery/detail/' . $node->nid . '/' . $fid,
-          'attributes' => array('class' => 'colorbox-supplemental-link post'),
+          'attributes' => array('class' => array('colorbox-supplemental-link post')),
         );
         unset($media[$delta]);
       }
@@ -331,11 +331,13 @@ function media_gallery_view($node, $view_mode) {
       '#theme' => 'links',
       '#links' => $pre_links,
       '#weight' => -20,
+      '#attributes' => array('class' => array('colorbox-supplemental-links')),
     );
     $node->content['colorbox_links_post'] = array(
       '#theme' => 'links',
       '#links' => $post_links,
       '#weight' => 20,
+      '#attributes' => array('class' => array('colorbox-supplemental-links')),
     );
     // Finally, display the pager, with a high weight so it appears at the
     // bottom.
@@ -356,7 +358,7 @@ function media_gallery_view($node, $view_mode) {
 function media_gallery_add_images_link_pre_render($elements) {
   drupal_add_library('media', 'media_browser');
   module_load_include('inc', 'media', 'media.browser');
-  media_include_browser_js();
+  media_attach_browser_js($elements);
   drupal_add_js(drupal_get_path('module', 'media_gallery') . '/media_gallery.addimage.js');
   return $elements;
 }
@@ -778,7 +780,7 @@ function media_gallery_entity_info_alter(&$info) {
   // corresponding media entity view mode.
   foreach (media_gallery_field_formatter_info() as $formatter_name => $formatter_info) {
     if (in_array('media', $formatter_info['field types'])) {
-      $info['media']['view modes'][$formatter_name] = array('label' => $formatter_info['label']);
+      $info['media']['view modes'][$formatter_name] = array('label' => $formatter_info['label'], 'custom settings' => FALSE);
     }
   }
   // Add a view mode for displaying a node in a media gallery block.
@@ -1172,7 +1174,6 @@ function media_gallery_form_taxonomy_form_term_alter(&$form, &$form_state) {
     'media_gallery_columns' => 'gallery',
     'media_gallery_rows' => 'gallery',
     'media_gallery_image_info_where' => 'gallery',
-    'media_gallery_gallery_info' => 'gallery',
   );
 
   // Move the items to the fieldset.

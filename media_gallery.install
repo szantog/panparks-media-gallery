@@ -20,9 +20,11 @@ function media_gallery_enable() {
 function media_gallery_install() {
   // Adjust bundle settings for the media gallery content type.
   $bundle_settings = field_bundle_settings('node', 'media_gallery');
+
   // Enable the gallery block and full view modes.
   $bundle_settings['view_modes']['media_gallery_block']['custom_settings'] = TRUE;
   $bundle_settings['view_modes']['full']['custom_settings'] = TRUE;
+
   // Adjust the "Add media link" extra field so that it only displays on the
   // full node view, with the correct weight relative to the other fields. In
   // particular, we put it directly after the 'media_gallery_description'
@@ -32,13 +34,13 @@ function media_gallery_install() {
   $bundle_settings['extra_fields']['display']['add_media_link']['default']['visible'] = FALSE;
   $bundle_settings['extra_fields']['display']['add_media_link']['teaser']['visible'] = FALSE;
   $bundle_settings['extra_fields']['display']['add_media_link']['media_gallery_block']['visible'] = FALSE;
-  
-  // If we don't do this, it will throw E_NOTICE errors during install.
-  // Don't ask me why I don't care anymore.
+
+  // _field_extra_fields_pre_render() requires an explicit 'weight' value for
+  // all extra field settings stored in the database.
   foreach ($bundle_settings['extra_fields']['display']['add_media_link'] as $name => $view_mode) {
     $bundle_settings['extra_fields']['display']['add_media_link'][$name]['weight'] = 1;
   }
-  
+
   // Save the new bundle settings.
   field_bundle_settings('node', 'media_gallery', $bundle_settings);
 
@@ -210,7 +212,7 @@ function _media_gallery_controlled_fields() {
       'field_name' => 'media_gallery_columns',
       'cardinality' => 1,
       'locked' => TRUE,
-      'type' => 'list_number',
+      'type' => 'list_float',
       'settings' => array(
         'allowed_values_function' => '_media_gallery_get_columns_values',
       ),
@@ -257,7 +259,7 @@ function _media_gallery_controlled_fields() {
       'field_name' => 'media_gallery_block_columns',
       'cardinality' => 1,
       'locked' => TRUE,
-      'type' => 'list_number',
+      'type' => 'list_float',
       'settings' => array(
         'allowed_values_function' => '_media_gallery_get_block_columns_values',
       ),
@@ -1201,4 +1203,20 @@ function media_gallery_update_7006() {
     _media_gallery_ensure_field($field);
     _media_gallery_ensure_instance($instance);
 
+}
+
+/**
+ * Fix stored display settings for the 'add_media_link' extra field to include 'weight'.
+ */
+function media_gallery_update_7007() {
+  // _field_extra_fields_pre_render() requires an explicit 'weight' value for
+  // all extra field settings stored in the database. Early versions of this
+  // module failed to include that.
+  $bundle_settings = field_bundle_settings('node', 'media_gallery');
+  if (isset($bundle_settings['extra_fields']['display']['add_media_link'])) {
+    foreach ($bundle_settings['extra_fields']['display']['add_media_link'] as $view_mode => &$settings) {
+      $settings += array('weight' => 1);
+    }
+  }
+  field_bundle_settings('node', 'media_gallery', $bundle_settings);
 }

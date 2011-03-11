@@ -67,7 +67,7 @@ function theme_media_gallery_teaser($variables) {
   $output = '<div class="media-collection-item-wrapper"><img class="stack-image" src="' . base_path() . drupal_get_path('module', 'media_gallery') . '/images/stack_bg.png" />' . theme('media_gallery_item', $link_vars);
 
   // Set the variables to theme the meta data if there is a term on the node
-  if ($node->term) {
+  if (isset($node->term)) {
     $term = $node->term;
     $meta_vars = array();
     $meta_vars['location'] = $term->media_gallery_image_info_where[LANGUAGE_NONE][0]['value'];
@@ -217,7 +217,7 @@ function theme_media_gallery_media_item_lightbox($variables) {
 
   $output = 'Error';
   // If the format is to have the description as well, we add it here
-  if ($gallery_node->media_gallery_lightbox_extras[LANGUAGE_NONE][0]['value']) {
+  if (!empty($gallery_node->media_gallery_lightbox_extras[LANGUAGE_NONE][0]['value'])) {
     $output =
     '<div class="mg-lightbox-wrapper clearfix">' .
       '<div class="lightbox-title">' . drupal_render($element['media_title']) . '</div>' .
@@ -468,7 +468,7 @@ function theme_media_gallery_meta($variables) {
     $meta_link = $location == 'hover' ? l($meta, $link_path, array('attributes' => $attributes, 'html' => TRUE)) : '<span class="meta-wrapper">' . $meta . '</span>';
   }
 
-  return $meta_link;
+  return isset($meta_link) ? $meta_link : NULL;
 }
 
 /**
