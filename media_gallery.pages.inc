@@ -409,18 +409,7 @@ function media_gallery_media_page_multiedit($node) {
   // Build and process the form.
   $form = media_page_multiedit($media_entities);
 
-  // The multiform module doesn't redirect correctly, so we do it here.
-  // @TODO: Remove when http://drupal.org/node/1033330 is resolved.
-  if (isset($_POST['op']) && $_POST['op'] === 'Save' && !form_get_errors()) {
-    $uri = entity_uri('node', $node);
-    if (isset($_GET['page'])) {
-      $uri['options']['query']['page'] = $_GET['page'];
-    }
-    drupal_goto($uri['path'], $uri['options']);
-  }
-
-  // If we're here, then the form hasn't been submitted yet, so override the
-  // page title set by media_page_multiedit() and return the form.
+  // Override the page title set by media_page_multiedit() and return the form.
   drupal_set_title(t('<em>Edit media for</em> @title', array('@type' => $node->type, '@title' => $node->title)), PASS_THROUGH);
   return $form;
 }
