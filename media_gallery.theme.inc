@@ -64,7 +64,7 @@ function theme_media_gallery_teaser($variables) {
   $link_vars['link_path'] = $uri['path'];
   $link_vars['classes'] = array('media-gallery-thumb');
 
-  $output = '<div class="media-collection-item-wrapper"><img class="stack-image" src="' . base_path() . drupal_get_path('module', 'media_gallery') . '/images/stack_bg.png" />' . theme('media_gallery_item', $link_vars);
+  $output = '<div class="media-collection-item-wrapper"><img class="stack-image" src="' . base_path() . drupal_get_path('module', 'media_gallery') . '/images/stack_bg.png" />' . theme('media_gallery_item', $link_vars) . '</div>';
 
   // Set the variables to theme the meta data if there is a term on the node
   if (isset($node->term)) {
@@ -93,7 +93,6 @@ function theme_media_gallery_teaser($variables) {
       $description[] = format_plural($count, '<span>%num other item</span>', '<span>%num other items</span>', array('%num' => $count));
     }
     $meta_vars['description'] = implode(', ', $description);
-    $output .= '</div>';
 
     // Add the meta information
     $output .= theme('media_gallery_meta', $meta_vars);
