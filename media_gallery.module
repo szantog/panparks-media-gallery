@@ -588,7 +588,15 @@ function media_gallery_block_view($delta = '') {
     // Perform the sort.
     usort($files, '_media_gallery_sort_by_recent');
     // Display the block.
-    $block['content'] = node_view($node, 'media_gallery_block');
+    $block['content']['gallery'] = node_view($node, 'media_gallery_block');
+    // Move the node's contextual links so that they display on the block
+    // rather than the node (i.e., in the same dropdown as the "Configure
+    // block" link). This is also required in order to properly integrate with
+    // the code in media_gallery_contextual_links_view_alter().
+    if (isset($block['content']['gallery']['#contextual_links'])) {
+      $block['content']['#contextual_links'] = $block['content']['gallery']['#contextual_links'];
+      unset($block['content']['gallery']['#contextual_links']);
+    }
     $block['content']['more_link'] = array(
       '#theme' => 'more_link',
       '#url' => 'node/' . $node->nid,
