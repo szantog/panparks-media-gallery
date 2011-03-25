@@ -80,17 +80,17 @@ function theme_media_gallery_teaser($variables) {
     $description = array();
     if (isset($type_count['image'])) {
       $count = $type_count['image'];
-      $description[] = format_plural($count, '<span>%num image</span>', '<span>%num images</span>', array('%num' => $count));
+      $description[] = format_plural($count, '<span>@num image</span>', '<span>@num images</span>', array('@num' => $count));
       unset($type_count['image']);
     }
     if (isset($type_count['video'])) {
       $count = $type_count['video'];
-      $description[] = format_plural($count, '<span>%num video</span>', '<span>%num videos</span>', array('%num' => $count));
+      $description[] = format_plural($count, '<span>@num video</span>', '<span>@num videos</span>', array('@num' => $count));
       unset($type_count['video']);
     }
     if (!empty($type_count)) {
       $count = array_sum($type_count);
-      $description[] = format_plural($count, '<span>%num other item</span>', '<span>%num other items</span>', array('%num' => $count));
+      $description[] = format_plural($count, '<span>@num other item</span>', '<span>@num other items</span>', array('@num' => $count));
     }
     $meta_vars['description'] = implode(', ', $description);
 
@@ -306,7 +306,7 @@ function theme_media_gallery_media_item_detail($variables) {
         '</span>' .
         '<span class="media-gallery-detail-image-info-wrapper">' .
           '<span class="media-gallery-image-count">' .
-            t("Item %current of %total", array('%current' => $i_current + 1, '%total' => $num_items)) .
+            t("Item @current of @total", array('@current' => $i_current + 1, '@total' => $num_items)) .
           '</span>' .
           '<span class="media-gallery-controls">' .
             $previous_link .
