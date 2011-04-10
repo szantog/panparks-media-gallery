@@ -372,7 +372,7 @@ function media_gallery_media_page_edit($gallery, $media) {
   // include file. In addition to loading it here, we also set the include file
   // info within $form_state in case there are AJAX enabled widgets that will
   // submit to system/ajax, bypassing this menu callback.
-  module_load_include('inc', 'media', 'media.pages');
+  module_load_include('inc', 'media', 'includes/media.pages');
   $form_state['build_info']['files']['menu'] = array('type' => 'inc', 'module' => 'media', 'name' => 'media.pages');
 
   // Provide context information for form building and processing functions.
@@ -404,7 +404,7 @@ function media_gallery_media_page_multiedit($node) {
   // @todo To support AJAX enabled widgets within the form, we need to also add
   //   media.pages.inc to $form_state['build_info']['files']['menu']. Figure out
   //   how to integrate that properly with the Multiform module.
-  module_load_include('inc', 'media', 'media.pages');
+  module_load_include('inc', 'media', 'includes/media.pages');
 
   // Build and process the form.
   $form = media_page_multiedit($media_entities);

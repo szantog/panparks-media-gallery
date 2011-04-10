@@ -357,7 +357,7 @@ function media_gallery_view($node, $view_mode) {
  */
 function media_gallery_add_images_link_pre_render($elements) {
   drupal_add_library('media', 'media_browser');
-  module_load_include('inc', 'media', 'media.browser');
+  module_load_include('inc', 'media', 'includes/media.browser');
   // The correct function to call here switched between Media 7.x-1.0-beta3 and
   // the latest Media 7.x-1.x code, and calling the wrong function in either
   // case leads to a PHP fatal error. So for now, we have to support both.
