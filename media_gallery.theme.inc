@@ -302,7 +302,7 @@ function theme_media_gallery_media_item_detail($variables) {
       '</div>' .
       '<div class="media-gallery-detail-info">' .
         '<span class="media-gallery-back-link">' .
-          l('« Back to gallery', 'node/' . $gallery_node->nid) .
+          l(t('« Back to gallery'), 'node/' . $gallery_node->nid) .
         '</span>' .
         '<span class="media-gallery-detail-image-info-wrapper">' .
           '<span class="media-gallery-image-count">' .
