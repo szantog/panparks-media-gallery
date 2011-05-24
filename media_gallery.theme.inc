@@ -367,20 +367,17 @@ function theme_media_gallery_block_thumbnail($variables) {
  * Displays a media item (entity) as a thumbnail on a Gallery collection page
  */
 function theme_media_gallery_collection_thumbnail($variables) {
-  $element = $variables['element'];
-
-  // Get the rendered file without annoying DIV wrappers.
-  $element['file']['#theme'] = 'media_gallery_file_field_inline';
-  $image = drupal_render($element['file']);
-
-  $link_vars = array();
-  $link_vars['image'] = $image;
-  $link_vars['link_path'] = 'something';
-  $link_vars['classes'] = 'media-gallery-thumb';
-
-  $output = '<div class="media-gallery-item-wrapper">' . theme('media_gallery_item', $link_vars) . '</div>';
-
-  return $output;
+  // In the default configuration of the module, the collection thumbnail
+  // display format is used for node teasers, and theme_media_gallery_teaser()
+  // bypasses calling this theme function. However, if someone configures their
+  // site differently (to use this display format in a different view mode), we
+  // need some sensible behavior here. For now, we just theme the media item
+  // the same way we theme it when it appears in a block thumbnail.
+  // @todo: Ideally, some of the code in theme_media_gallery_teaser() would
+  //   move here instead, so that people could configure their site to
+  //   reproduce the default "media gallery node teaser" style in other view
+  //   modes as well.
+  return theme('media_gallery_block_thumbnail', $variables);
 }
 
 /**
