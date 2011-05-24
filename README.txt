@@ -18,7 +18,7 @@ INSTALLATION
 
    Required:
 
-   a. Media (latest release, tested with 7.x-1.0-beta3)
+   a. Media (latest release, tested with 7.x-1.0-beta4)
       - Download from http://drupal.org/project/media and unpack it in your
         contributed modules directory (usually sites/all/modules).
    b. Multiform (latest release, tested with 7.x-1.0-beta2)
@@ -27,7 +27,7 @@ INSTALLATION
    c. Styles (latest release, tested with 7.x-2.0-alpha5)
       - Download from http://drupal.org/project/styles and unpack it in your
         contributed modules directory (usually sites/all/modules).
-   d. ColorBox jQuery plugin (latest release, tested with 1.3.16)
+   d. ColorBox jQuery plugin (latest release, tested with 1.3.17)
       - Download from http://colorpowered.com/colorbox and unpack it in
         sites/all/libraries (if the directory doesn't exist, create it first).
 
@@ -39,16 +39,15 @@ INSTALLATION
    f. Media YouTube (latest release, 7.x-1.0-alpha4)
       - Download from http://drupal.org/project/media_youtube and unpack it in
         your contributed modules directory (usually sites/all/modules).
-   g. Plupload (latest release, 7.x-1.0-beta2)
+   g. Plupload (latest release, 7.x-1.0-beta3)
       - First, download the module from http://drupal.org/project/plupload and
         unpack it in your contributed modules directory (usually
         sites/all/modules).
       - Next, download the Plupload JavaScript library from
-        http://www.plupload.com (latest release, tested with 1.4.2).
-      - Unzip this library inside your Plupload module directory (e.g., inside
-        sites/all/modules/plupload, so that in the end there is a
-        sites/all/modules/plupload/plupload directory containing the library).
-        See the Plupload module's README.txt file for up-to-date instructions.
+        http://www.plupload.com (latest release, tested with 1.4.3.2) and
+        unpack it in sites/all/libraries (if the directory doesn't exist,
+        create it first). See the Plupload module's README.txt file for
+        up-to-date instructions.
 
 3. Enable the modules.
 
