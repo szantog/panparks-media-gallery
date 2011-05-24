@@ -880,7 +880,11 @@ function media_gallery_form_media_gallery_node_form_alter(&$form, &$form_state) 
   // Move the items to the fieldset.
   foreach($fieldset as $id => $subgroup) {
     $form['settings_wrapper'][$subgroup][$id] = $form[$id];
-    unset($form[$id]);
+    // locale_field_node_form_submit() looks for field language information in
+    // a hard-coded part of $form.
+    // @todo Other modules may as well, so would be best to move form elements
+    //   within #pre_render rather than in hook_form_alter().
+    $form[$id] = array('#language' => $form[$id]['#language']);
   }
 
   // Add a vertical tab menu for blocks
@@ -903,7 +907,11 @@ function media_gallery_form_media_gallery_node_form_alter(&$form, &$form_state) 
   // Move the items to the fieldset.
   foreach($fieldset as $id => $subgroup) {
     $form[$subgroup][$id] = $form[$id];
-    unset($form[$id]);
+    // locale_field_node_form_submit() looks for field language information in
+    // a hard-coded part of $form.
+    // @todo Other modules may as well, so would be best to move form elements
+    //   within #pre_render rather than in hook_form_alter().
+    $form[$id] = array('#language' => $form[$id]['#language']);
   }
 
   // Add a class to the fieldset to target it in the js
