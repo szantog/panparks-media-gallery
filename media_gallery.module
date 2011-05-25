@@ -1232,11 +1232,8 @@ function media_gallery_select_galleries($tid, $pager = TRUE, $limit = FALSE) {
  * Used to modify the taxonomy term edit screen for gallery collection settings.
  */
 function media_gallery_form_taxonomy_form_term_alter(&$form, &$form_state) {
-  // This form is used for deleting taxonomy terms also (in which case
-  // $form['#term'] has a totally different structure) so make sure to check
-  // those conditions first before continuing. We only want to alter this form
-  // if a media gallery taxonomy term is being edited.
-  if (isset($form_state['confirm_delete']) || !is_array($form['#term']) || $form['#term']['vid'] != variable_get('media_gallery_collection_vid')) {
+  // Don't do anything unless this is a gallery collection edit form.
+  if (isset($form_state['confirm_delete']) || !isset($form['#vocabulary']) || $form['#vocabulary']->vid != variable_get('media_gallery_collection_vid')) {
     return;
   }
 
