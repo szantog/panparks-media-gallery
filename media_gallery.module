@@ -1452,7 +1452,10 @@ function media_gallery_styles_default_presets_alter(&$styles) {
       $styles['file']['containers'][$container]['styles'][$image_style]['default preset'] = $image_style;
       $styles['file']['containers'][$container]['presets'][$image_style] = array(
         array(
-          'name' => 'image_style',
+          // @todo Styles 2.0-alpha6 and later uses 'imageStyle', while earlier
+          //   versions use 'image_style'. Change to simply using 'imageStyle'
+          //   when it's okay to drop compatibility with the earlier versions.
+          'name' => (class_exists('FileStyles') && method_exists('FileStyles', 'imageStyle')) ? 'imageStyle' : 'image_style',
           'settings' => array(
             'image_style' => $image_style,
           ),
