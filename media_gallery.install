@@ -340,6 +340,9 @@ function _media_gallery_controlled_instances($group = NULL) {
         'type' => 'text_textarea',
         'settings' => array('rows' => 4),
       ),
+      'settings' => array(
+        'text_processing' => 1,
+      ),
       'display' => array(
         'default' => array(
           'type' => 'text_default',
@@ -768,6 +771,9 @@ function _media_required_instances() {
       'widget' => array(
         'type' => 'text_textarea',
         'settings' => array('rows' => 4),
+      ),
+      'settings' => array(
+        'text_processing' => 1,
       ),
       'display' => array(
         'default' => array('type' => 'text_default', 'label' => 'above'),
@@ -1226,4 +1232,25 @@ function media_gallery_update_7007() {
     }
   }
   field_bundle_settings('node', 'media_gallery', $bundle_settings);
+}
+
+/**
+ * Ensure that the description fields for galleries and media allow filtered text.
+ */
+function media_gallery_update_7008() {
+  // Ensure that the media_description field is filtered text.
+  foreach (array('video', 'image') as $bundle) {
+    $instance = field_info_instance('media', 'media_description', $bundle);
+    if ($instance) {
+      $instance['settings']['text_processing'] = 1;
+      field_update_instance($instance);
+    }
+  }
+
+  // Ensure that the media_gallery_description field is filtered text.
+  $instance = field_info_instance('node', 'media_gallery_description', 'media_gallery');
+  if ($instance) {
+    $instance['settings']['text_processing'] = 1;
+    field_update_instance($instance);
+  }
 }
