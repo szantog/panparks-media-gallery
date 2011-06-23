@@ -239,11 +239,15 @@ function media_gallery_reorder_collection($collection, $order) {
  */
 function media_gallery_reorder_gallery($gallery, $order) {
   $media_field = $gallery->media_gallery_media[LANGUAGE_NONE];
-  $keys = array_keys($media_field);
-  $keys = _media_gallery_reorder($keys, $order);
+
+  if (!empty($_POST['page'])) {
+    $page = array_pop(explode(',', $_POST['page']));
+    $num_per_page = $gallery->media_gallery_columns[LANGUAGE_NONE][0]['value'] * $gallery->media_gallery_rows[LANGUAGE_NONE][0]['value'];
+    $offset = $num_per_page * $page;
+  }
   
-  foreach ($keys as $new_delta => $old_delta) {
-    $gallery->media_gallery_media[LANGUAGE_NONE][$new_delta] = $media_field[$old_delta];
+  foreach ($order as $new_delta => $old_delta) {
+    $gallery->media_gallery_media[LANGUAGE_NONE][$new_delta + $offset] = $media_field[$old_delta + $offset];
   }
   node_save($gallery);
   return TRUE;
