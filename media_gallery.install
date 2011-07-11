@@ -105,6 +105,14 @@ function media_gallery_install() {
  */
 function media_gallery_requirements() {
   $requirements = array();
+
+  // If this module is part of an install profile, its requirements will be
+  // checked before the field system is available. The rest of this function is
+  // unneeded anyway in that case, so bail out here to avoid fatal errors.
+  if (!module_exists('field')) {
+    return $requirements;
+  }
+
   $t = get_t();
 
   $required_fields = _media_gallery_controlled_fields();
@@ -912,6 +920,13 @@ function media_gallery_create_taxonomy_term($vocabulary) {
     'link_title' => 'Taxonomy term',
     'link_path' => 'taxonomy/term/' . $term->tid,
   );
+  // If the router item doesn't exist yet (for example, if we are installing
+  // either the Taxonomy module or Drupal itself at the same time as Media
+  // Gallery), rebuild the menu before saving, to avoid errors.
+  $router_item_exists = (bool) db_query_range('SELECT 1 FROM {menu_router} WHERE path = :path', 0, 1, array(':path' => 'taxonomy/term/%'))->fetchField();
+  if (!$router_item_exists) {
+    menu_rebuild();
+  }
   menu_link_save($menu_item);
 
   // Save the term ID for future use.
