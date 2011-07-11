@@ -110,7 +110,8 @@ function media_gallery_field_formatter_view($entity_type, $entity, $field, $inst
   field_attach_prepare_view('file', $files, $file_view_mode);
   entity_prepare_view('file', $files);
 
-  // View each file.
+  // View each file. We don't use file_view_multiple(), because we need the
+  // render array indexed by $delta rather than by file id.
   foreach ($items as $delta => $item) {
     $element[$delta] = file_view($item['file'], $file_view_mode, $langcode);
     $element[$delta]['#media_gallery_entity_type'] = $entity_type;
