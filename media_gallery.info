@@ -5,9 +5,9 @@ package = Media
 
 dependencies[] = list
 dependencies[] = number
-dependencies[] = media
+dependencies[] = media (1.0-beta5)
 dependencies[] = taxonomy
-dependencies[] = multiform
+dependencies[] = multiform (1.0-beta2)
 
 files[] = media_gallery.module
 files[] = media_gallery.admin.inc
