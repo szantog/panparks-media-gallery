@@ -89,6 +89,9 @@ function media_gallery_field_formatter_view($entity_type, $entity, $field, $inst
   // Prepare the referenced file entities for viewing.
   $files = array();
   foreach ($items as $delta => $item) {
+    if (!isset($item['file'])) {
+      $items[$delta]['file'] = file_load($item['fid']);
+    }
     $file = $item['file'];
 
     // Pass along formatter reference field values from the gallery to the file.
@@ -297,7 +300,7 @@ function _media_gallery_get_expose_block_values() {
 
 /**
  * Allowed values callback for field_license list field.
- * 
+ *
  * @todo: should be moved to media_cc module or something.
  */
 function _media_gallery_get_field_license_values() {
