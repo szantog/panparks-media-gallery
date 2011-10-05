@@ -88,9 +88,9 @@ function media_gallery_field_formatter_view($entity_type, $entity, $field, $inst
 
   // Prepare the referenced file entities for viewing.
   $files = array();
-  foreach ($items as $delta => $item) {
+  foreach ($items as $delta => &$item) {
     if (!isset($item['file'])) {
-      $items[$delta]['file'] = file_load($item['fid']);
+      $item['file'] = file_load($item['fid']);
     }
     $file = $item['file'];
 
