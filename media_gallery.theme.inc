@@ -332,10 +332,18 @@ function theme_media_gallery_media_item_detail($variables) {
       '</div>' .
     '</div>';
 
-  // Set the title and license to be #access = false so they don't get rendered as children
-  $element['media_title']['#access'] = FALSE;
-  $element['field_license']['#access'] = FALsE;
+  // The license was already output above via a direct theme() call rather
+  // than drupal_render().
+  $element['field_license']['#printed'] = TRUE;
 
+  // The file was rendered above, but due to a drupal_render() bug, might not be
+  // marked as printed.
+  // @todo Remove when http://drupal.org/node/1305220 is fixed.
+  $element['file']['#printed'] = TRUE;
+
+  // Render the remaining fields, but not the title, since that's output as
+  // part of the page title.
+  $element['media_title']['#access'] = FALSE;
   $output .=
     '<div class="no-overflow">' .
       drupal_render_children($element) .
