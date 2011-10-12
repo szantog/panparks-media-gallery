@@ -19,26 +19,30 @@ Drupal.behaviors.mediaGalleryColorbox.attach = function (context, settings) {
         href = $link.attr('href');
         $link.attr('href', href.replace(/\/detail\/([0-9]+)\/([0-9]+)/, '/lightbox/$1/$2'));
       }
-      $links.not('.meta-wrapper').colorbox({
-        slideshow: true,
-        slideshowAuto: false,
-        slideshowStart: Drupal.t('Slideshow'),
-        slideshowStop: '[' + Drupal.t('stop slideshow') + ']',
-        slideshowSpeed: 4000,
-        current: Drupal.t('Item !current of !total', {'!current':'{current}', '!total':'{total}'}),
-        innerWidth: 'auto',
-        // If 'title' evaluates to false, Colorbox will use the title from the
-        // underlying <a> element, which we don't want. Using a space is the
-        // officially approved workaround. See
-        // http://groups.google.com/group/colorbox/msg/7671ae69708950bf
-        title: ' ',
-        transition: 'fade',
-        preloading: true,
-        fastIframe: false,
-        onComplete: function () {
-          $(this).colorbox.resize();
-        }
-      });
+       $links.not('.meta-wrapper').colorbox({
+        slideshow: Drupal.settings.colorbox.slideshow,
+        slideshowAuto: Drupal.settings.colorbox.slideshowAuto,
+        slideshowStart: Drupal.settings.colorbox.slideshowStart,
+        slideshowStop: Drupal.settings.colorbox.slideshowStop,
+        slideshowSpeed: Drupal.settings.colorbox.slideshowSpeed,
+        current: Drupal.settings.colorbox.current,
+        next: Drupal.settings.colorbox.next,
+        previous: Drupal.settings.colorbox.previous,
+         innerWidth: 'auto',
+        //maxWidth: Drupal.settings.colorbox.maxWidth,
+        //maxHeight: Drupal.settings.colorbox.maxHeight,
+        speed: Drupal.settings.colorbox.speed,
+        close:settings.colorbox.close,
+        overlayClose:settings.colorbox.overlayClose,
+         // If 'title' evaluates to false, Colorbox will use the title from the
+         // underlying <a> element, which we don't want. Using a space is the
+         // officially approved workaround. See
+         // http://groups.google.com/group/colorbox/msg/7671ae69708950bf
+         title: ' ',
+        transition: Drupal.settings.colorbox.transition,
+        opacity: Drupal.settings.colorbox.opacity,
+         preloading: true
+       });
     }
     $('a.meta-wrapper').bind('click', Drupal.mediaGalleryColorbox.metaClick);
     // Subscribe to the media_youtube module's load event, so we can pause
@@ -46,6 +50,45 @@ Drupal.behaviors.mediaGalleryColorbox.attach = function (context, settings) {
     $(window).bind('media_youtube_load', Drupal.mediaGalleryColorbox.handleMediaYoutubeLoad);
   }
 };
+
+jQuery(document).ready(function() {
+
+    // Add the ColorBox theme name to <body> as a class name
+    var cboxTheme  = (Drupal.settings.colorbox.__drupal_alter_by_ref).toString();
+    if (cboxTheme.indexOf("example1") != -1) {
+        cboxTheme = 'example1';
+    }
+    else if (cboxTheme.indexOf("example2") != -1) {
+        cboxTheme = 'example2';
+    }
+    else if (cboxTheme.indexOf("example3") != -1) {
+        cboxTheme = 'example3';
+    }
+    else if (cboxTheme.indexOf("example4") != -1) {
+        cboxTheme = 'example4';
+    }
+    else if (cboxTheme.indexOf("example5") != -1) {
+        cboxTheme = 'example5';
+    }
+    else if (cboxTheme.indexOf("default") != -1) {
+        cboxTheme = 'default';
+    }
+    else if (cboxTheme.indexOf("stockholmsyndrome") != -1) {
+        cboxTheme = 'stockholmsyndrome';
+    }
+    else {
+        cboxTheme = 'none';
+    }
+    cboxTheme = 'cbox-' + cboxTheme;
+    jQuery('body').addClass(cboxTheme);
+
+    // Put the title in the correct div container
+    jQuery(document).bind('cbox_complete', function() {
+                var cboxTitle = jQuery(".lightbox-title").html();
+                jQuery("#cboxTitle").html(cboxTitle);
+    });
+});
+
 
 Drupal.mediaGalleryColorbox = {};
 
