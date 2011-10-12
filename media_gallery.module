@@ -687,29 +687,6 @@ function media_gallery_block_save($delta = '', $edit = array()) {
 }
 
 /**
- * Implements hook_library().
- */
-function media_gallery_library() {
-  $library_path = variable_get('media_gallery_library_path', 'sites/all/libraries');
-  $stylesheet = variable_get('media_gallery_colorbox_stylesheet', 'example1');
-  $libraries['colorbox'] = array(
-    'title' => 'Colorbox',
-    'website' => 'http://colorpowered.com/colorbox/',
-    'version' => '1.3.9',
-    'js' => array(
-      $library_path . '/colorbox/colorbox/jquery.colorbox-min.js' => array(),
-    ),
-    'css' => array(
-      $library_path . '/colorbox/' . $stylesheet . '/colorbox.css' => array(
-        'type' => 'file',
-        'media' => 'screen',
-      ),
-    ),
-  );
-  return $libraries;
-}
-
-/**
  * Helper function to sort media gallery items by an ordered list of file IDs.
  *
  * Call once with $set_fid_order set to an array of file orders, keyed by the

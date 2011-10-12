@@ -218,7 +218,7 @@ function theme_media_gallery_media_item_lightbox($variables) {
     // but we haven't found one yet.
     $download_link = '&nbsp;';
   }
-
+  $media_desc_class = !empty($gallery_node->media_gallery_lightbox_extras[LANGUAGE_NONE][0]['value']) ? 'lightbox-wdesc' : '';
   $media_gallery_detail =
       '<div class="lightbox-stack">' .
       theme('media_gallery_item', $link_vars) .
@@ -233,7 +233,7 @@ function theme_media_gallery_media_item_lightbox($variables) {
   // If the format is to have the description as well, we add it here
   if (!empty($gallery_node->media_gallery_lightbox_extras[LANGUAGE_NONE][0]['value'])) {
     $output =
-    '<div class="mg-lightbox-wrapper clearfix">' .
+    '<div class="mg-lightbox-wrapper clearfix '.$media_desc_class.'">' .
       '<div class="lightbox-title">' . drupal_render($element['media_title']) . '</div>' .
       '<div class="mg-lightbox-detail">' .
       $media_gallery_detail .

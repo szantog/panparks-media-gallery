@@ -513,55 +513,188 @@ a.media-gallery-thumb img,
 
 /* @group Lightbox styles */
 
-#cboxSlideshow {
+.cbox-example1 .lightbox-title,
+.cbox-example2 .lightbox-title,
+.cbox-example3 .lightbox-title,
+.cbox-example4 .lightbox-title,
+.cbox-example5 .lightbox-title,
+.cbox-default .lightbox-title,
+.cbox-stockholmsyndrome .lightbox-title {
+    display: none;
+}
+
+.cbox-example1 #cboxContent, .cbox-example1 #cboxLoadedContent, .cbox-example1 #colorbox,
+.cbox-example4 #cboxContent, .cbox-example4 #cboxLoadedContent, .cbox-example4 #colorbox,
+.cbox-default #cboxContent, .cbox-default #cboxLoadedContent, .cbox-default #colorbox {
+    overflow: hidden !important;
+}
+
+/* .cbox-example1*/
+.cbox-example1 #cboxSlideshow {
   right: 40px;
 }
-
-.mg-lightbox-wrapper {
+.cbox-example1 .mg-lightbox-wrapper {
   color: #666666;
 }
-
-.mg-lightbox-wrapper a,
-.lightbox-stack a {
+.cbox-example1 .mg-lightbox-wrapper a,
+.cbox-example1 .lightbox-stack a {
   color: #0074BD;
 }
-
-.mg-lightbox-wrapper a:link,
-.mg-lightbox-wrapper a:visited,
-.mg-lightbox-wrapper a:active,
-.mg-lightbox-wrapper a:hover,
-.lightbox-stack a:link,
-.lightbox-stack a:visited,
-.lightbox-stack a:active,
-.lightbox-stack a:hover{
+.cbox-example1 .mg-lightbox-wrapper a:link,
+.cbox-example1 .mg-lightbox-wrapper a:visited,
+.cbox-example1 .mg-lightbox-wrapper a:active,
+.cbox-example1 .mg-lightbox-wrapper a:hover,
+.cbox-example1 .lightbox-stack a:link,
+.cbox-example1 .lightbox-stack a:visited,
+.cbox-example1 .lightbox-stack a:active,
+.cbox-example1 .lightbox-stack a:hover{
   color: #0074BD;
 }
-
-.mg-lightbox-wrapper a:hover,
-.lightbox-stack a:hover {
+.cbox-example1 .mg-lightbox-wrapper a:hover,
+.cbox-example1 .lightbox-stack a:hover {
   text-decoration: underline;
 }
-
-.mg-lightbox-wrapper .lightbox-title {
+.cbox-example1 .mg-lightbox-wrapper .lightbox-title {
   font-size: 1.8em;
   font-weight: bold;
   padding-bottom: 0.2em;
   padding-top: 0.2em;
 }
-
-.mg-lightbox-detail {
+.cbox-example1 .mg-lightbox-detail {
   float: left;
   padding-right: 320px;
 }
-
-.mg-lightbox-description {
+.cbox-example1 .mg-lightbox-description {
   width: 300px;
   margin-left: -300px;
   float: left;
 }
-
-.lightbox-stack {
+.cbox-example1 .lightbox-stack {
   min-width: 250px;
+}
+.cbox-example1 #cboxContent,
+.cbox-example1 #cboxLoadedContent,
+.cbox-example1 #colorbox {
+    overflow: hidden !important;
+}
+.cbox-example1 .mg-lightbox-description .field-item {
+  overflow: auto !important;
+}
+
+/* .cbox-example2 & .cbox-example3 */
+.cbox-example2 #colorbox .lightbox-wdesc .mg-lightbox-description,
+.cbox-example3 #colorbox .lightbox-wdesc .mg-lightbox-description {
+    bottom: 0;
+    color: #888;
+    height: 100px;
+    margin: 8px;
+    overflow: auto;
+    position: absolute;
+}
+.cbox-example2 #colorbox .mg-lightbox-wrapper,
+.cbox-example3 #colorbox .mg-lightbox-wrapper {
+    overflow: hidden;
+}
+.cbox-example2 #colorbox .mg-lightbox-wrapper.lightbox-wdesc,
+.cbox-example3 #colorbox .mg-lightbox-wrapper.lightbox-wdesc {
+    padding-bottom: 108px;
+}
+.cbox-example2 #colorbox .media-gallery-detail-info,
+.cbox-example3 #colorbox .media-gallery-detail-info {
+    margin: 0;
+    padding: 0;
+}
+.cbox-example2 #colorbox .media-gallery-detail-info a,
+.cbox-example3 #colorbox .media-gallery-detail-info a {
+    margin-left: 8px;
+}
+.cbox-example2 #colorbox .media-gallery-detail-info .media-license,
+.cbox-example3 #colorbox .media-gallery-detail-info .media-license {
+    margin-right: 8px;
+}
+.cbox-example2 #colorbox a, .cbox-example2 #colorbox a:link, .cbox-example2 #colorbox a:visited,
+.cbox-example3 #colorbox a, .cbox-example3 #colorbox a:link, .cbox-example3 #colorbox a:visited {
+    color: #fff;
+    text-decoration: none;
+}
+.cbox-example2 #colorbox a:hover,
+.cbox-example3 #colorbox a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.cbox-example3 #cboxLoadedContent {
+    background: #000 !important;
+}
+
+/* .cbox-example4 & .cbox-example5 & .cbox-default & .cbox-stockholmsyndrome */
+.cbox-example4 #colorbox .lightbox-wdesc .mg-lightbox-description,
+.cbox-example5 #colorbox .lightbox-wdesc .mg-lightbox-description,
+.cbox-default #colorbox .lightbox-wdesc .mg-lightbox-description,
+.cbox-stockholmsyndrome #colorbox .lightbox-wdesc .mg-lightbox-description {
+    bottom: 30px;
+    color: #444;
+    height: 100px;
+    overflow: auto;
+    position: absolute;
+}
+.cbox-example5 #colorbox .lightbox-wdesc .mg-lightbox-description {
+    bottom: 16px;
+}
+.cbox-default #colorbox .lightbox-wdesc .mg-lightbox-description {
+    bottom: 52px;
+    height: 92px;
+}
+.cbox-stockholmsyndrome #colorbox .lightbox-wdesc .mg-lightbox-description {
+    bottom: 0;
+    margin: 8px;
+}
+.cbox-example4 #colorbox .mg-lightbox-wrapper,
+.cbox-example5 #colorbox .mg-lightbox-wrapper,
+.cbox-default #colorbox .mg-lightbox-wrapper,
+.cbox-stockholmsyndrome #colorbox .mg-lightbox-wrapper {
+    overflow: hidden;
+}
+.cbox-example4 #colorbox .mg-lightbox-wrapper.lightbox-wdesc,
+.cbox-example5 #colorbox .mg-lightbox-wrapper.lightbox-wdesc,
+.cbox-default #colorbox .mg-lightbox-wrapper.lightbox-wdesc {
+    padding-bottom: 108px;
+}
+.cbox-stockholmsyndrome #colorbox .mg-lightbox-wrapper.lightbox-wdesc {
+    padding-bottom: 100px;
+}
+.cbox-example4 #colorbox .media-gallery-detail-info,
+.cbox-example5 #colorbox .media-gallery-detail-info,
+.cbox-default #colorbox .media-gallery-detail-info,
+.cbox-stockholmsyndrome #colorbox .media-gallery-detail-info {
+    margin: 0;
+    padding: 0;
+}
+.cbox-example4 #colorbox a, .cbox-example4 #colorbox a:link, .cbox-example4 #colorbox a:visited,
+.cbox-example5 #colorbox a, .cbox-example5 #colorbox a:link, .cbox-example5 #colorbox a:visited,
+.cbox-default #colorbox a, .cbox-default #colorbox a:link, .cbox-default #colorbox a:visited,
+.cbox-stockholmsyndrome #colorbox a, .cbox-stockholmsyndrome #colorbox a:link, .cbox-stockholmsyndrome #colorbox a:visited {
+    color: #36f;
+    text-decoration: none;
+}
+.cbox-example4 #colorbox a:hover,
+.cbox-example5 #colorbox a:hover,
+.cbox-default #colorbox a:hover,
+.cbox-stockholmsyndrome #colorbox a:hover {
+    color: #36f;
+    text-decoration: underline;
+}
+.cbox-stockholmsyndrome #colorbox .media-gallery-detail-info a {
+    margin-left: 8px;
+}
+.cbox-stockholmsyndrome #colorbox .media-gallery-detail-info .media-license {
+    margin-right: 8px;
+}
+.cbox-stockholmsyndrome #cboxSlideshow {
+    bottom: -26px;
+    position: absolute;
+    text-align: center;
+    width: 100%;
 }
 
 /* @end */
